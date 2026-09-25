@@ -11,7 +11,17 @@ export default function App(){
   stored.onboarding?.status==='complete'?'home':'welcome'
  );const [journey,setJourney]=useState(stored.journey||'Project Single'); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(18); const [mode,setMode]=useState('Standard'); const [round,setRound]=useState(stored.activeRound||makeRound(course,18)); const [hole,setHole]=useState(1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const lastRound=rounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(rounds),[rounds]);
- useEffect(()=>save({onboarded:screen!=='welcome'&&screen!=='journey',journey,profile,courses,activeRound:round,lastRound,rounds}),[screen,journey,profile,courses,round,lastRound,rounds]);
+useEffect(()=>save({
+  identity:stored.identity,
+  onboarding:stored.onboarding,
+  journey,
+  profile,
+  courses,
+  activeRound:round,
+  rounds,
+  coach:stored.coach,
+  sync:stored.sync
+}),[journey,profile,courses,round,rounds]);
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
  const startRound=()=>{setRound(makeRound(course,holeCount));setHole(1);goto('hole')};
  const demo=()=>setRound(r=>r.map((x,i)=>({...x,score:[5,4,3,6,4,5,3,5,4,5,4,3,6,4,4,4,5,4][i]??x.par,putts:[2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2][i]??2,gir:i%3===0,tee:x.par===3?null:(i===4||i===12?'Right':i===7?'Penalty':'Fairway'),penalty:i===7||i===12?1:0,touched:true})));
