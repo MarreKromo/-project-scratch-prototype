@@ -1,7 +1,7 @@
 const K = 'project-scratch-v1';
 const LEGACY_DEMO_KEY = 'project-scratch-v04';
 
-const createId = prefix => {
+export const createId = prefix => {
   if (globalThis.crypto?.randomUUID) {
     return `${prefix}-${crypto.randomUUID()}`;
   }
