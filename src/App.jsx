@@ -13,7 +13,37 @@ export default function App(){
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
  const startRound=()=>{setRound(makeRound(course,holeCount));setHole(1);goto('hole')};
  const demo=()=>setRound(r=>r.map((x,i)=>({...x,score:[5,4,3,6,4,5,3,5,4,5,4,3,6,4,4,4,5,4][i]??x.par,putts:[2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2][i]??2,gir:i%3===0,tee:x.par===3?null:(i===4||i===12?'Right':i===7?'Penalty':'Fairway'),penalty:i===7||i===12?1:0,touched:true})));
- const saveRound=()=>{const mm=metrics(round),saved={id:`round-${Date.now()}`,course:course.name,tee:course.tee,date:new Date().toISOString(),round:[...round],metrics:mm,analysis:buildCoach(mm)};setRounds(x=>[...x,saved]);goto('saved')};
+ const saveRound=()=>{
+  const mm=metrics(round);
+
+  const saved={
+    id:`round-${Date.now()}`,
+    course:course.name,
+    tee:course.tee,
+    date:new Date().toISOString(),
+    round:[...round],
+    metrics:mm,
+    analysis:buildCoach(mm)
+  };
+
+  setRounds(prev=>{
+    const next=[...prev,saved];
+
+    save({
+      onboarded:true,
+      journey,
+      courses,
+      activeRound:null,
+      lastRound:saved,
+      rounds:next
+    });
+
+    return next;
+  });
+
+  setRound(makeRound(course,holeCount));
+  goto('saved');
+};
  const addCourse=()=>{const pars=newCourse.pars.split(',').map(x=>Number(x.trim())).filter(x=>[3,4,5,6].includes(x));if(!newCourse.name.trim()||pars.length!==Number(newCourse.holes))return alert(`Enter ${newCourse.holes} valid par values.`);const c={id:`personal-${Date.now()}`,name:newCourse.name.trim(),tee:newCourse.tee.trim()||'Tee',holes:Number(newCourse.holes),pars};setCourses(x=>[c,...x]);setCourse(c);setHoleCount(c.holes);goto('setup')};
  const a=lastRound?.analysis||analysis,lm=lastRound?.metrics;
  const StatGrid=()=> <><div className="statsGrid"><Card className="mini"><small>ROUNDS SAVED</small><strong>{history.rounds}</strong></Card><Card className="mini"><small>AVG SCORE</small><strong>{show(history.scoreAvg)}</strong></Card><Card className="mini"><small>GIR</small><strong>{show(history.girPct,'%')}</strong></Card><Card className="mini"><small>FIR</small><strong>{show(history.firPct,'%')}</strong></Card><Card className="mini"><small>BIRDIE %</small><strong>{show(history.birdiePct,'%')}</strong></Card><Card className="mini"><small>BOGEY %</small><strong>{show(history.bogeyPct,'%')}</strong></Card><Card className="mini"><small>PUTTS / ROUND</small><strong>{show(history.puttsPerRound)}</strong></Card><Card className="mini"><small>3-PUTTS / ROUND</small><strong>{show(history.threePuttsPerRound)}</strong></Card><Card className="mini"><small>PENALTIES / ROUND</small><strong>{show(history.penaltiesPerRound)}</strong></Card><Card className="mini"><small>BEST SCORE</small><strong>{show(history.bestScore)}</strong></Card></div><Card><Eyebrow>Tee shot · typical miss</Eyebrow><div className="missGrid"><div><b>{show(history.leftPct,'%')}</b><small>← Left</small></div><div><b>{show(history.firPct,'%')}</b><small>Fairway</small></div><div><b>{show(history.rightPct,'%')}</b><small>Right →</small></div></div></Card></>;
