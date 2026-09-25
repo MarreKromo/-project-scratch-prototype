@@ -8,7 +8,14 @@ import BottomNav from './components/BottomNav.jsx'; import HeroCard from './comp
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 export default function App(){
  const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
-  stored.onboarding?.status==='complete'?'home':'welcome'
+  stored.onboarding?.status==='complete'
+    ? 'home'
+    : stored.onboarding?.status==='handicap'
+      ? 'handicap'
+      : stored.onboarding?.status==='journey'
+        ? 'journey'
+        : 'welcome'
+);
  );const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(18); const [mode,setMode]=useState('Standard'); const [round,setRound]=useState(stored.activeRound||makeRound(course,18)); const [hole,setHole]=useState(1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const lastRound=rounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(rounds),[rounds]);
 useEffect(()=>save({
