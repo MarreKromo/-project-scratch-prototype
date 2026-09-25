@@ -35,16 +35,15 @@ useEffect(()=>save({
  const saveRound=()=>{
   const mm=metrics(round);
 
-  const saved={
+    const saved={
     id:createId('round'),
-        ownerId:stored.identity.id,
+    ownerId:stored.identity.id,
     roundType:holeCount,
     mode:mode.toLowerCase(),
     eligibility:{
       progression:mode==='Standard',
       coach:mode==='Standard'
     },
-    course:course.name,
     course:course.name,
     tee:course.tee,
     date:new Date().toISOString(),
