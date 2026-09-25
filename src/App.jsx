@@ -38,6 +38,12 @@ useEffect(()=>save({
   const saved={
     id:createId('round'),
     ownerId:stored.identity.id,
+   roundType:holeCount,
+mode:mode.toLowerCase(),
+eligibility:{
+  progression:mode==='Standard',
+  coach:mode==='Standard'
+},
     course:course.name,
     tee:course.tee,
     date:new Date().toISOString(),
