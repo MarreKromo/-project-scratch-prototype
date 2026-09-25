@@ -37,6 +37,7 @@ useEffect(()=>save({
 
   const saved={
     id:createId('round'),
+    ownerId:stored.identity.id,
     course:course.name,
     tee:course.tee,
     date:new Date().toISOString(),
