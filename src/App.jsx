@@ -44,6 +44,10 @@ useEffect(()=>save({
       progression:mode==='Standard',
       coach:mode==='Standard'
     },
+     status:'complete',
+    revision:1,
+    createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
     course:course.name,
     tee:course.tee,
     date:new Date().toISOString(),
