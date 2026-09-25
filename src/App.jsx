@@ -42,7 +42,8 @@ useEffect(()=>save({
     const next=[...prev,saved];
 
     save({
-      onboarded:true,
+      identity:stored.identity,
+      onboarding,
       journey,
       profile,
       courses,
