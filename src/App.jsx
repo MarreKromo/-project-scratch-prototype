@@ -7,9 +7,28 @@ import {load,save,normalize,updateHandicap} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 export default function App(){
- const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile); const [handicapInput,setHandicapInput]=useState('');const [screen,setScreen]=useState(stored.onboarded?'home':'welcome'); const [journey,setJourney]=useState(stored.journey||'Project Single'); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(18); const [mode,setMode]=useState('Standard'); const [round,setRound]=useState(stored.activeRound||makeRound(course,18)); const [hole,setHole]=useState(1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
+ const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
+  stored.onboarding?.status==='complete'
+    ? 'home'
+    : stored.onboarding?.status==='handicap'
+      ? 'handicap'
+      : stored.onboarding?.status==='journey'
+        ? 'journey'
+        : 'welcome'
+);
+ const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(18); const [mode,setMode]=useState('Standard'); const [round,setRound]=useState(stored.activeRound||makeRound(course,18)); const [hole,setHole]=useState(1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const lastRound=rounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(rounds),[rounds]);
- useEffect(()=>save({onboarded:screen!=='welcome'&&screen!=='journey',journey,profile,courses,activeRound:round,lastRound,rounds}),[screen,journey,profile,courses,round,lastRound,rounds]);
+useEffect(()=>save({
+  identity:stored.identity,
+  onboarding,
+  journey,
+  profile,
+  courses,
+  activeRound:round,
+  rounds,
+  coach:stored.coach,
+  sync:stored.sync
+}),[onboarding,journey,profile,courses,round,rounds]);
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
  const startRound=()=>{setRound(makeRound(course,holeCount));setHole(1);goto('hole')};
  const demo=()=>setRound(r=>r.map((x,i)=>({...x,score:[5,4,3,6,4,5,3,5,4,5,4,3,6,4,4,4,5,4][i]??x.par,putts:[2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2][i]??2,gir:i%3===0,tee:x.par===3?null:(i===4||i===12?'Right':i===7?'Penalty':'Fairway'),penalty:i===7||i===12?1:0,touched:true})));
@@ -30,7 +49,8 @@ export default function App(){
     const next=[...prev,saved];
 
     save({
-      onboarded:true,
+      identity:stored.identity,
+      onboarding,
       journey,
       profile,
       courses,
@@ -49,9 +69,9 @@ export default function App(){
  const a=lastRound?.analysis||analysis,lm=lastRound?.metrics;
  const StatGrid=()=> <><div className="statsGrid"><Card className="mini"><small>ROUNDS SAVED</small><strong>{history.rounds}</strong></Card><Card className="mini"><small>AVG SCORE</small><strong>{show(history.scoreAvg)}</strong></Card><Card className="mini"><small>GIR</small><strong>{show(history.girPct,'%')}</strong></Card><Card className="mini"><small>FIR</small><strong>{show(history.firPct,'%')}</strong></Card><Card className="mini"><small>BIRDIE %</small><strong>{show(history.birdiePct,'%')}</strong></Card><Card className="mini"><small>BOGEY %</small><strong>{show(history.bogeyPct,'%')}</strong></Card><Card className="mini"><small>PUTTS / ROUND</small><strong>{show(history.puttsPerRound)}</strong></Card><Card className="mini"><small>3-PUTTS / ROUND</small><strong>{show(history.threePuttsPerRound)}</strong></Card><Card className="mini"><small>PENALTIES / ROUND</small><strong>{show(history.penaltiesPerRound)}</strong></Card><Card className="mini"><small>BEST SCORE</small><strong>{show(history.bestScore)}</strong></Card></div><Card><Eyebrow>Tee shot · typical miss</Eyebrow><div className="missGrid"><div><b>{show(history.leftPct,'%')}</b><small>← Left</small></div><div><b>{show(history.firPct,'%')}</b><small>Fairway</small></div><div><b>{show(history.rightPct,'%')}</b><small>Right →</small></div></div></Card></>;
  return <div className="shell"><header><button className="brand" onClick={()=>goto('home')}>PROJECT SCRATCH</button><span className="status">{offline?<><WifiOff size={13}/> OFFLINE</>:'PROTOTYPE v0.3.1'}</span></header><main>
- {screen==='welcome'&&<Page className="welcome"><Eyebrow>Better every round</Eyebrow><h1>Turn every round into your next advantage.</h1><p>Understand what shaped your score, commit to one focus and carry a measurable target into the next round.</p><Primary onClick={()=>goto('journey')}>Start your journey</Primary></Page>}
- {screen==='journey'&&<Page><Eyebrow>Your journey</Eyebrow><h1>What are you chasing?</h1><p>Choose the next scoring level that matters to you.</p>{journeys.map(x=><Choice key={x} on={journey===x} onClick={()=>setJourney(x)}>{x}</Choice>)}<Primary onClick={()=>goto('handicap')}>Continue</Primary></Page>}
- {screen==='handicap'&&<Page><Eyebrow>Your profile</Eyebrow><h1>What's your current handicap?</h1><p>Enter your current handicap. The number you provide is used for your development profile and does not calculate or change your official handicap.</p><Label>Current handicap</Label><input type="number" inputMode="decimal" step="0.1" value={handicapInput} onChange={e=>setHandicapInput(e.target.value)} placeholder="e.g. 18.4"/><Primary onClick={()=>{const value=Number(handicapInput);if(!handicapInput.trim()||!Number.isFinite(value))return;setProfile(p=>updateHandicap(p,value));goto('home')}}>Continue</Primary></Page>}
+ {screen==='welcome'&&<Page className="welcome"><Eyebrow>Better every round</Eyebrow><h1>Turn every round into your next advantage.</h1><p>Understand what shaped your score, commit to one focus and carry a measurable target into the next round.</p><Primary onClick={()=>{setOnboarding({status:'journey',completedAt:null});goto('journey')}}>Start your journey</Primary></Page>}
+ {screen==='journey'&&<Page><Eyebrow>Your journey</Eyebrow><h1>What are you chasing?</h1><p>Choose the next scoring level that matters to you.</p>{journeys.map(x=><Choice key={x} on={journey===x} onClick={()=>setJourney(x)}>{x}</Choice>)}<Primary onClick={()=>{if(!journey)return;setOnboarding({status:'handicap',completedAt:null});goto('handicap')}}>Continue</Primary></Page>}
+ {screen==='handicap'&&<Page><Eyebrow>Your profile</Eyebrow><h1>What's your current handicap?</h1><p>Enter your current handicap. The number you provide is used for your development profile and does not calculate or change your official handicap.</p><Label>Current handicap</Label><input type="number" inputMode="decimal" step="0.1" value={handicapInput} onChange={e=>setHandicapInput(e.target.value)} placeholder="e.g. 18.4"/><Primary onClick={()=>{const value=Number(handicapInput);if(!handicapInput.trim()||!Number.isFinite(value))return;setProfile(p=>updateHandicap(p,value));setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Continue</Primary><TextButton onClick={()=>{setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>I don't know my handicap</TextButton></Page>}
  {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Your development</Eyebrow><h1>Make the next round count.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ONE FOCUS</span><small>{a.confidence} confidence</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Why this focus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NEXT ROUND</small><strong>{a.target}</strong></Card><Card className="mini"><small>LATEST</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'No round yet'}</strong></Card></div><Primary onClick={()=>goto('course')}>Start a round</Primary></Page>}
  {screen==='course'&&<Page><Eyebrow>Round</Eyebrow><h1>Where did you play?</h1>{courses.map(c=><Card key={c.id} className="courseCard"><button className="coursePick" onClick={()=>{setCourse(c);setHoleCount(c.holes);goto('setup')}}><div><b>{c.name}</b><small>{c.tee} • {c.holes} holes</small></div><span>→</span></button></Card>)}<Card><b>Course missing?</b><p>Create a personal course. No external provider required.</p><Secondary onClick={()=>goto('create')}>Create course</Secondary></Card></Page>}
  {screen==='create'&&<Page><button className="back" onClick={()=>goto('course')}><ChevronLeft/> Courses</button><Eyebrow>Personal course</Eyebrow><h1>Create course</h1><Label>Course name</Label><input value={newCourse.name} onChange={e=>setNewCourse({...newCourse,name:e.target.value})} placeholder="e.g. Hulta Golfklubb"/><Label>Tee</Label><input value={newCourse.tee} onChange={e=>setNewCourse({...newCourse,tee:e.target.value})}/><Label>Round</Label><div className="grid2"><Choice on={newCourse.holes===18} onClick={()=>setNewCourse({...newCourse,holes:18})}>18 holes</Choice><Choice on={newCourse.holes===9} onClick={()=>setNewCourse({...newCourse,holes:9,pars:newCourse.pars.split(',').slice(0,9).join(',')})}>9 holes</Choice></div><Label>Par sequence</Label><textarea value={newCourse.pars} onChange={e=>setNewCourse({...newCourse,pars:e.target.value})}/><small>Use comma-separated pars. Rating, Slope and distances stay optional.</small><Primary onClick={addCourse}>Save personal course</Primary></Page>}
