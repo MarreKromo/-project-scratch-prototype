@@ -1,27 +1,22 @@
-# Project Scratch — Interactive Prototype v0.2
+# Project Scratch — Interactive Prototype v0.3
 
-Mobile-first React/Vite prototype implementing the UX Bible core loop.
+Mobile-first React/Vite prototype focused on the core development loop: Round → Evidence → One Focus → Action → Next target.
 
-## Run locally
-1. Install Node.js 20+
-2. `npm install`
-3. `npm run dev`
+## v0.3 changes
+- richer Home overview / journey hero
+- round-driven deterministic coach instead of hard-coded recap
+- working personal course creation with local persistence
+- working 9/18-hole and Standard/Practice selection
+- safer round completion state and resume-on-device behavior
+- dynamic recap, evidence, One Focus, Coach and Progress surfaces
+- visual system refresh
+- pinned Vite/React dependencies and explicit Vite React config
+
+## Run
+`npm install`
+`npm run dev`
 
 ## Production build
 `npm run build`
 
-The generated `dist/` folder can be deployed to any static host.
-
-## Prototype paths
-- Onboarding + Journey
-- Home
-- Course selection / personal course
-- 18-hole round entry
-- Review + validation
-- Safe save + offline simulation
-- Recap + evidence
-- One Focus + practice + next-round target
-- Coach feedback
-- Progress
-
-This is a UX prototype, not production architecture. No backend, auth, real AI, analytics, or persistent database is included.
+This remains a UX prototype: no backend, auth, external course provider, real LLM, official handicap/WHS, or production analytics.
