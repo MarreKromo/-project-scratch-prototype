@@ -83,7 +83,10 @@ export const save = state => {
 };
 
 export const normalize = state => {
-  const base = createInitialState();
+  const base = {
+  ...createInitialState(),
+  identity: state?.identity || createIdentity()
+};
 
   return {
     ...base,
