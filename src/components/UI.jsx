@@ -1,7 +1,7 @@
 import React from 'react'; import {ChevronRight,Check} from 'lucide-react';
 export const Page=({children,className=''})=><section className={'page '+className}>{children}</section>;
 export const Eyebrow=({children})=><div className="eyebrow">{children}</div>;
-export const Card=({children,className=''})=><div className={'card '+className}>{children}</div>;
+export const Card=({children,className='',onClick})=><div className={'card '+className} onClick={onClick}>{children}</div>;
 export const Primary=({children,onClick,disabled=false})=><button disabled={disabled} className="primary" onClick={onClick}>{children}<ChevronRight size={17}/></button>;
 export const Secondary=({children,onClick})=><button className="secondary" onClick={onClick}>{children}</button>;
 export const TextButton=({children,onClick})=><button className="textBtn" onClick={onClick}>{children}</button>;
