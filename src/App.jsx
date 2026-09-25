@@ -36,7 +36,7 @@ useEffect(()=>save({
   const mm=metrics(round);
 
   const saved={
-    id:`round-${Date.now()}`,
+    id:createId('round'),
     course:course.name,
     tee:course.tee,
     date:new Date().toISOString(),
