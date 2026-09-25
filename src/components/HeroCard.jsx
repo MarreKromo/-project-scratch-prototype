@@ -1,7 +1,7 @@
 import React from 'react';
 import {ArrowUpRight,Flag} from 'lucide-react';
 
-export default function HeroCard({journey,lastScore}){
+export default function HeroCard({journey,currentHandicap,lastScore}){
   return (
     <div className="heroCard">
       <div className="heroGlow"/>
@@ -17,7 +17,7 @@ export default function HeroCard({journey,lastScore}){
       <div className="heroNumbers">
         <div>
           <small>CURRENT</small>
-          <strong>—</strong>
+          <strong>{currentHandicap ?? '—'}</strong>
         </div>
 
         <span>→</span>
