@@ -32,6 +32,7 @@ export default function App(){
     save({
       onboarded:true,
       journey,
+      profile,
       courses,
       activeRound:null,
       lastRound:saved,
