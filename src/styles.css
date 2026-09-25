@@ -311,3 +311,5 @@ nav button.navOn{
   h1{font-size:30px}
   .page{padding:24px 16px}
 }
+/* v0.3.1 statistics + history */
+.statsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.statsGrid .card{margin:0}
