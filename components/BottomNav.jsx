@@ -1,0 +1,2 @@
+import React from 'react'; import {Home,PlusCircle,Sparkles,TrendingUp} from 'lucide-react';
+export default function BottomNav({screen,goto}){const items=[['home',Home,'Home'],['course',PlusCircle,'Round'],['coach',Sparkles,'Coach'],['progress',TrendingUp,'Progress']];return <nav>{items.map(([id,I,l])=><button key={id} className={screen===id?'navOn':''} onClick={()=>goto(id)}><I size={21}/><span>{l}</span></button>)}</nav>}
