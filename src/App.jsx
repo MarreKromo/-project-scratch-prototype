@@ -34,7 +34,7 @@ export default function App(){
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,courses,round,rounds,roundActive,roundDraft]);} 
+}),[onboarding,journey,profile,courses,round,rounds,roundActive,roundDraft]); 
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
 useEffect(()=>{
   if(roundActive) setRoundDraft(d=>d?{...d,currentHole:hole}:d);
