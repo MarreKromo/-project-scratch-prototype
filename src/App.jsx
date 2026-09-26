@@ -394,7 +394,17 @@ goto('saved');
   }}>
     Save changes
   </Primary>
+  <Secondary onClick={()=>{
+  setReplaceClubForm({
+    type:editClubForm.type,
+    label:'',
+    loft:''
+  });
 
+  goto('replaceClub');
+}}>
+  Replace club
+</Secondary>
   <Secondary onClick={()=>{
     removeClub(selectedClubId);
     setSelectedClubId(null);
