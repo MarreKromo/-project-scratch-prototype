@@ -47,7 +47,11 @@ export const createInitialState = () => ({
 
   rounds: [],
 
-  coach: {
+equipment: {
+  clubs: []
+},
+
+coach: {
     analyses: [],
     activeFocus: null
   },
@@ -117,10 +121,18 @@ export const normalize = state => {
       : [],
 
     rounds: Array.isArray(state?.rounds)
-      ? state.rounds
-      : [],
+  ? state.rounds
+  : [],
 
-    coach: {
+equipment: {
+  ...base.equipment,
+  ...(state?.equipment || {}),
+  clubs: Array.isArray(state?.equipment?.clubs)
+    ? state.equipment.clubs
+    : []
+},
+
+coach: {
       ...base.coach,
       ...(state?.coach || {}),
       analyses: Array.isArray(state?.coach?.analyses)
