@@ -70,14 +70,14 @@ useEffect(()=>{
     },
      status:'complete',
     revision:1,
-    createdAt:new Date().toISOString(),
+    createdAt:roundDraft?.startedAt||new Date().toISOString(),
     updatedAt:new Date().toISOString(),
     course:course.name,
     tee:course.tee,
     date:new Date().toISOString(),
     round:[...round],
     metrics:mm,
-    analysis:buildCoach(mm)
+    analysis:mode==='Standard'?buildCoach(mm):null
   };
 
   setRounds(prev=>{
