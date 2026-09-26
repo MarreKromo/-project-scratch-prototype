@@ -178,6 +178,8 @@ export const updateHandicap = (profile, value) => {
     ]
   };
 };
+
+
 export const createClub = ({
   ownerId,
   type,
