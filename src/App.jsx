@@ -42,7 +42,7 @@ useEffect(()=>{
     currentHole:hole,
     updatedAt:new Date().toISOString()
   }:d);
-},[hole,roundActive]);
+},[hole,round,roundActive]);
  const startRound=()=>{
   setRound(makeRound(course,holeCount));
   setRoundDraft({id:createId('round'),
