@@ -3,7 +3,7 @@ import {WifiOff,Sparkles,Target,Activity,ChevronLeft} from 'lucide-react';
 import {journeys,defaultCourse,makeRound} from './data/prototypeData.js';
 import {metrics,METRICS_VERSION,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
 import {coach as buildCoach} from './logic/coachEngine.js';
-import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub} from './logic/storage.js';
+import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 export default function App(){
@@ -57,6 +57,32 @@ const removeClub = clubId => {
         : club
     )
   }));
+};
+
+ const replaceBagClub = (clubId, replacement) => {
+  setEquipment(current => {
+    const oldClub = current.clubs.find(
+      club => club.id === clubId
+    );
+
+    const result = replaceClub(oldClub, replacement);
+
+    if (!result) {
+      return current;
+    }
+
+    return {
+      ...current,
+      clubs: [
+        ...current.clubs.map(club =>
+          club.id === clubId
+            ? result.retiredClub
+            : club
+        ),
+        result.newClub
+      ]
+    };
+  });
 };
  
  const [roundActive,setRoundActive]=useState(Boolean(stored.activeRound));  
