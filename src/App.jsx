@@ -41,7 +41,7 @@ useEffect(()=>{
 },[hole,roundActive]);
  const startRound=()=>{
   setRound(makeRound(course,holeCount));
-  setRoundDraft({
+  setRoundDraft({id:createId('round'),
     ownerId:stored.identity.id,
     status:'in_progress',
     currentHole:1,
@@ -60,7 +60,7 @@ useEffect(()=>{
   const mm=metrics(round);
 
     const saved={
-    id:createId('round'),
+    id:roundDraft?.id||createId('round'),
     ownerId:stored.identity.id,
     roundType:holeCount,
     mode:mode.toLowerCase(),
