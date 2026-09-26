@@ -412,6 +412,80 @@ goto('saved');
   }}>
     Retire club
   </Secondary>
+</Page>}{screen==='replaceClub'&&selectedClubId&&<Page>
+  <button className="back" onClick={()=>goto('editClub')}>
+    <ChevronLeft/> Manage club
+  </button>
+
+  <Eyebrow>My Bag</Eyebrow>
+  <h1>Replace club.</h1>
+  <p>
+    Your current club will be retired and kept in your history.
+    The replacement becomes a new club.
+  </p>
+
+  <Label>Club type</Label>
+  <input
+    value={replaceClubForm.type}
+    onChange={e=>setReplaceClubForm({
+      ...replaceClubForm,
+      type:e.target.value
+    })}
+  />
+
+  <Label>Club name</Label>
+  <input
+    value={replaceClubForm.label}
+    onChange={e=>setReplaceClubForm({
+      ...replaceClubForm,
+      label:e.target.value
+    })}
+    placeholder="e.g. Ping G430"
+  />
+
+  <Label>Loft · optional</Label>
+  <input
+    type="number"
+    inputMode="decimal"
+    step="0.1"
+    value={replaceClubForm.loft}
+    onChange={e=>setReplaceClubForm({
+      ...replaceClubForm,
+      loft:e.target.value
+    })}
+    placeholder="e.g. 10.5"
+  />
+
+  <Primary onClick={()=>{
+    const type=replaceClubForm.type.trim();
+    const label=replaceClubForm.label.trim();
+
+    if(!type||!label)return;
+
+    const loft=replaceClubForm.loft.trim()===''
+      ? null
+      : Number(replaceClubForm.loft);
+
+    if(loft!==null&&!Number.isFinite(loft))return;
+
+    replaceBagClub(selectedClubId,{
+      type,
+      label,
+      loft
+    });
+
+    setSelectedClubId(null);
+
+    setReplaceClubForm({
+      type:'',
+      label:'',
+      loft:''
+    });
+
+    goto('bag');
+  }}>
+    Replace club
+  </Primary>
 </Page>}
  {screen==='course'&&<Page><Eyebrow>Round</Eyebrow><h1>Where did you play?</h1>{courses.map(c=><Card key={c.id} className="courseCard"><button className="coursePick" onClick={()=>{setCourse(c);setHoleCount(c.holes);goto('setup')}}><div><b>{c.name}</b><small>{c.tee} • {c.holes} holes</small></div><span>→</span></button></Card>)}<Card><b>Course missing?</b><p>Create a personal course. No external provider required.</p><Secondary onClick={()=>goto('create')}>Create course</Secondary></Card></Page>}
  {screen==='create'&&<Page><button className="back" onClick={()=>goto('course')}><ChevronLeft/> Courses</button><Eyebrow>Personal course</Eyebrow><h1>Create course</h1><Label>Course name</Label><input value={newCourse.name} onChange={e=>setNewCourse({...newCourse,name:e.target.value})} placeholder="e.g. Hulta Golfklubb"/><Label>Tee</Label><input value={newCourse.tee} onChange={e=>setNewCourse({...newCourse,tee:e.target.value})}/><Label>Round</Label><div className="grid2"><Choice on={newCourse.holes===18} onClick={()=>setNewCourse({...newCourse,holes:18})}>18 holes</Choice><Choice on={newCourse.holes===9} onClick={()=>setNewCourse({...newCourse,holes:9,pars:newCourse.pars.split(',').slice(0,9).join(',')})}>9 holes</Choice></div><Label>Par sequence</Label><textarea value={newCourse.pars} onChange={e=>setNewCourse({...newCourse,pars:e.target.value})}/><small>Use comma-separated pars. Rating, Slope and distances stay optional.</small><Primary onClick={addCourse}>Save personal course</Primary></Page>}
