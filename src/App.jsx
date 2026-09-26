@@ -222,12 +222,26 @@ goto('saved');
         .filter(club=>club.status==='active')
         .map(club=>
           <Card key={club.id}>
-            <b>{club.label}</b>
-            <p>
-              {club.type}
-              {club.loft!=null ? ` · ${club.loft}°` : ''}
-            </p>
-          </Card>
+  <b>{club.label}</b>
+  <p>
+    {club.type}
+    {club.loft!=null ? ` · ${club.loft}°` : ''}
+  </p>
+
+  <TextButton onClick={()=>{
+    setSelectedClubId(club.id);
+
+    setEditClubForm({
+      type:club.type,
+      label:club.label,
+      loft:club.loft==null ? '' : String(club.loft)
+    });
+
+    goto('editClub');
+  }}>
+    Manage club →
+  </TextButton>
+</Card>
         )
   }
 
