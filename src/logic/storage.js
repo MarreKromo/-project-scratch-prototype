@@ -249,5 +249,25 @@ export const retireClub = club => {
   };
 };
 
+export const replaceClub = (club, replacement = {}) => {
+  if (!club || club.status !== 'active') {
+    return null;
+  }
+
+  const retiredClub = retireClub(club);
+
+  const newClub = createClub({
+    ownerId: club.ownerId,
+    type: replacement.type ?? club.type,
+    label: replacement.label ?? club.label,
+    loft: replacement.loft ?? club.loft
+  });
+
+  return {
+    retiredClub,
+    newClub
+  };
+};
+
 export const hasLegacyDemoData = () =>
   localStorage.getItem(LEGACY_DEMO_KEY) !== null;
