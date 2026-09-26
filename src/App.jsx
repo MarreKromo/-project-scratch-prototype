@@ -16,7 +16,7 @@ export default function App(){
         ? 'journey'
         : 'welcome'
 );
- const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState('Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
+ const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const [roundActive,setRoundActive]=useState(Boolean(stored.activeRound));  
  const [roundDraft,setRoundDraft]=useState(stored.activeRound?.meta||null);
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
