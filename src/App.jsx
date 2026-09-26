@@ -8,6 +8,16 @@ import BottomNav from './components/BottomNav.jsx'; import HeroCard from './comp
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 export default function App(){
  const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
+  stored.activeRound?.meta?.status==='in_progress'
+    ? 'hole'
+    : stored.onboarding?.status==='complete'
+      ? 'home'
+      : stored.onboarding?.status==='handicap'
+        ? 'handicap'
+        : stored.onboarding?.status==='journey'
+          ? 'journey'
+          : 'welcome'
+);
   stored.onboarding?.status==='complete'
     ? 'home'
     : stored.onboarding?.status==='handicap'
@@ -16,7 +26,7 @@ export default function App(){
         ? 'journey'
         : 'welcome'
 );
- const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
+ const [journey,setJourney]=useState(stored.journey); const [course,setCourse]=useState(courses.find(c=>c.id===stored.activeRound?.meta?.courseId)||courses[0]||defaultCourse); const [course,setCourse]=useState(courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(stored.activeRound?.meta?.currentHole||1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const [roundActive,setRoundActive]=useState(Boolean(stored.activeRound));  
  const [roundDraft,setRoundDraft]=useState(stored.activeRound?.meta||null);
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
@@ -31,15 +41,18 @@ export default function App(){
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,courses,round,rounds,roundActive,roundDraft]);
+}),[onboarding,journey,profile,courses,round,rounds,roundActive,roundDraft]);} 
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
+useEffect(()=>{
+  if(roundActive) setRoundDraft(d=>d?{...d,currentHole:hole}:d);
+},[hole,roundActive]);
  const startRound=()=>{
   setRound(makeRound(course,holeCount));
   setRoundDraft({
     ownerId:stored.identity.id,
     status:'in_progress',
+    currentHole:1,
     courseId:course.id,
-    course:course.name,
     tee:course.tee,
     roundType:holeCount,
     mode:mode.toLowerCase(),
