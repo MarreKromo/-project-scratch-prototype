@@ -26,6 +26,14 @@ export default function App(){
   label:'',
   loft:''
 });
+
+ const [selectedClubId,setSelectedClubId]=useState(null);
+
+ const [editClubForm,setEditClubForm]=useState({
+  type:'',
+  label:'',
+  loft:''
+});
  
  const addClub = ({type,label,loft=null}) => {
   const club = createClub({
