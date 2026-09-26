@@ -202,6 +202,37 @@ export const createClub = ({
   };
 };
 
+export const updateClub = (club, changes = {}) => {
+  if (!club || club.status !== 'active') {
+    return club;
+  }
+
+  const allowed = {};
+
+  if ('type' in changes) {
+    allowed.type = changes.type;
+  }
+
+  if ('label' in changes) {
+    allowed.label = changes.label;
+  }
+
+  if ('loft' in changes) {
+    allowed.loft = changes.loft;
+  }
+
+  if (Object.keys(allowed).length === 0) {
+    return club;
+  }
+
+  return {
+    ...club,
+    ...allowed,
+    revision: (club.revision || 1) + 1,
+    updatedAt: new Date().toISOString()
+  };
+};
+
 export const retireClub = club => {
   if (!club || club.status === 'retired') {
     return club;
