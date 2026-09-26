@@ -71,6 +71,7 @@ useEffect(()=>{
      status:'complete',
     revision:1,
     createdAt:roundDraft?.startedAt||new Date().toISOString(),
+    completedAt:new Date().toISOString(),
     updatedAt:new Date().toISOString(),
     course:course.name,
     tee:course.tee,
@@ -84,16 +85,18 @@ useEffect(()=>{
   setRounds(prev=>{
     const next=[...prev,saved];
 
-    save({
-      identity:stored.identity,
-      onboarding,
-      journey,
-      profile,
-      courses,
-      activeRound:null,
-      lastRound:saved,
-      rounds:next
-    });
+   save({
+     identity:stored.identity,
+     onboarding,
+     journey,
+     profile,
+     courses,
+     activeRound:null,
+     lastRound:saved,
+     rounds:next,
+     coach:stored.coach,
+     sync:stored.sync
+   });
 
     return next;
   });
