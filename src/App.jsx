@@ -27,11 +27,11 @@ export default function App(){
   journey,
   profile,
   courses,
-  activeRound:roundActive ? round : null,
+  activeRound:roundActive ? {meta:roundDraft,holes:round} : null,
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,courses,round,rounds,roundActive]);
+}),[onboarding,journey,profile,courses,round,rounds,roundActive,roundDraft]);
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
  const startRound=()=>{
   setRound(makeRound(course,holeCount));
