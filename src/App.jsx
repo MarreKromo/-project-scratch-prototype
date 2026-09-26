@@ -189,7 +189,38 @@ goto('saved');
  {screen==='welcome'&&<Page className="welcome"><Eyebrow>Better every round</Eyebrow><h1>Turn every round into your next advantage.</h1><p>Understand what shaped your score, commit to one focus and carry a measurable target into the next round.</p><Primary onClick={()=>{setOnboarding({status:'journey',completedAt:null});goto('journey')}}>Start your journey</Primary></Page>}
  {screen==='journey'&&<Page><Eyebrow>Your journey</Eyebrow><h1>What are you chasing?</h1><p>Choose the next scoring level that matters to you.</p>{journeys.map(x=><Choice key={x} on={journey===x} onClick={()=>setJourney(x)}>{x}</Choice>)}<Primary onClick={()=>{if(!journey)return;setOnboarding({status:'handicap',completedAt:null});goto('handicap')}}>Continue</Primary></Page>}
  {screen==='handicap'&&<Page><Eyebrow>Your profile</Eyebrow><h1>What's your current handicap?</h1><p>Enter your current handicap. The number you provide is used for your development profile and does not calculate or change your official handicap.</p><Label>Current handicap</Label><input type="number" inputMode="decimal" step="0.1" value={handicapInput} onChange={e=>setHandicapInput(e.target.value)} placeholder="e.g. 18.4"/><Primary onClick={()=>{const value=Number(handicapInput);if(!handicapInput.trim()||!Number.isFinite(value))return;setProfile(p=>updateHandicap(p,value));setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Continue</Primary><TextButton onClick={()=>{setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>I don't know my handicap</TextButton></Page>}
- {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Your development</Eyebrow><h1>Make the next round count.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ONE FOCUS</span><small>{a.confidence} confidence</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Why this focus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NEXT ROUND</small><strong>{a.target}</strong></Card><Card className="mini"><small>LATEST</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'No round yet'}</strong></Card></div><Primary onClick={()=>goto('course')}>Start a round</Primary></Page>}
+ {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Your development</Eyebrow><h1>Make the next round count.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ONE FOCUS</span><small>{a.confidence} confidence</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Why this focus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NEXT ROUND</small><strong>{a.target}</strong></Card><Card className="mini"><small>LATEST</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'No round yet'}</strong></Card></div><Primary onClick={()=>goto('course')}>Start a round</Primary><Secondary onClick={()=>goto('bag')}>My Bag</Secondary></Page>}
+ {screen==='bag'&&<Page>
+  <button className="back" onClick={()=>goto('home')}>
+    <ChevronLeft/> Home
+  </button>
+
+  <Eyebrow>My Bag</Eyebrow>
+  <h1>Your equipment.</h1>
+  <p>
+    Keep track of the clubs you actually play.
+    Equipment history stays intact when your bag changes.
+  </p>
+
+  {equipment.clubs.filter(club=>club.status==='active').length===0
+    ? <Notice>No clubs added yet.</Notice>
+    : equipment.clubs
+        .filter(club=>club.status==='active')
+        .map(club=>
+          <Card key={club.id}>
+            <b>{club.label}</b>
+            <p>
+              {club.type}
+              {club.loft!=null ? ` · ${club.loft}°` : ''}
+            </p>
+          </Card>
+        )
+  }
+
+  <Primary onClick={()=>goto('addClub')}>
+    Add club
+  </Primary>
+</Page>}
  {screen==='course'&&<Page><Eyebrow>Round</Eyebrow><h1>Where did you play?</h1>{courses.map(c=><Card key={c.id} className="courseCard"><button className="coursePick" onClick={()=>{setCourse(c);setHoleCount(c.holes);goto('setup')}}><div><b>{c.name}</b><small>{c.tee} • {c.holes} holes</small></div><span>→</span></button></Card>)}<Card><b>Course missing?</b><p>Create a personal course. No external provider required.</p><Secondary onClick={()=>goto('create')}>Create course</Secondary></Card></Page>}
  {screen==='create'&&<Page><button className="back" onClick={()=>goto('course')}><ChevronLeft/> Courses</button><Eyebrow>Personal course</Eyebrow><h1>Create course</h1><Label>Course name</Label><input value={newCourse.name} onChange={e=>setNewCourse({...newCourse,name:e.target.value})} placeholder="e.g. Hulta Golfklubb"/><Label>Tee</Label><input value={newCourse.tee} onChange={e=>setNewCourse({...newCourse,tee:e.target.value})}/><Label>Round</Label><div className="grid2"><Choice on={newCourse.holes===18} onClick={()=>setNewCourse({...newCourse,holes:18})}>18 holes</Choice><Choice on={newCourse.holes===9} onClick={()=>setNewCourse({...newCourse,holes:9,pars:newCourse.pars.split(',').slice(0,9).join(',')})}>9 holes</Choice></div><Label>Par sequence</Label><textarea value={newCourse.pars} onChange={e=>setNewCourse({...newCourse,pars:e.target.value})}/><small>Use comma-separated pars. Rating, Slope and distances stay optional.</small><Primary onClick={addCourse}>Save personal course</Primary></Page>}
  {screen==='setup'&&<Page><Eyebrow>Round setup</Eyebrow><h1>{course.name}</h1><Card><Label>Tee</Label><Choice on>{course.tee}</Choice><Label>Round</Label><div className="grid2"><Choice on={holeCount===18} onClick={()=>course.holes>=18&&setHoleCount(18)}>18 holes</Choice><Choice on={holeCount===9} onClick={()=>setHoleCount(9)}>9 holes</Choice></div><Label>Mode</Label><div className="grid2"><Choice on={mode==='Standard'} onClick={()=>setMode('Standard')}>Standard</Choice><Choice on={mode==='Practice'} onClick={()=>setMode('Practice')}>Practice</Choice></div></Card><Primary onClick={startRound}>Start {holeCount}-hole round</Primary></Page>}
