@@ -34,6 +34,12 @@ export default function App(){
   label:'',
   loft:''
 });
+
+ const [replaceClubForm,setReplaceClubForm]=useState({
+  type:'',
+  label:'',
+  loft:''
+});
  
  const addClub = ({type,label,loft=null}) => {
   const club = createClub({
