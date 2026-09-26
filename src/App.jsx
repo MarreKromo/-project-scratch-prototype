@@ -1,7 +1,7 @@
 import React,{useMemo,useState,useEffect} from 'react';
 import {WifiOff,Sparkles,Target,Activity,ChevronLeft} from 'lucide-react';
 import {journeys,defaultCourse,makeRound} from './data/prototypeData.js';
-import {metrics,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
+import {metrics,METRICS_VERSION,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
 import {coach as buildCoach} from './logic/coachEngine.js';
 import {load,save,normalize,updateHandicap,createId} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
