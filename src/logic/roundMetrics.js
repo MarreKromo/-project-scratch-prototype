@@ -1,3 +1,4 @@
+export const METRICS_VERSION=1;
 export function completeHole(x){
   return x.touched &&
     x.score != null &&
