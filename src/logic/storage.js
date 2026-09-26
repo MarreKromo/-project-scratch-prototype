@@ -47,7 +47,11 @@ export const createInitialState = () => ({
 
   rounds: [],
 
-  coach: {
+equipment: {
+  clubs: []
+},
+
+coach: {
     analyses: [],
     activeFocus: null
   },
@@ -117,10 +121,18 @@ export const normalize = state => {
       : [],
 
     rounds: Array.isArray(state?.rounds)
-      ? state.rounds
-      : [],
+  ? state.rounds
+  : [],
 
-    coach: {
+equipment: {
+  ...base.equipment,
+  ...(state?.equipment || {}),
+  clubs: Array.isArray(state?.equipment?.clubs)
+    ? state.equipment.clubs
+    : []
+},
+
+coach: {
       ...base.coach,
       ...(state?.coach || {}),
       analyses: Array.isArray(state?.coach?.analyses)
@@ -164,6 +176,96 @@ export const updateHandicap = (profile, value) => {
         source: 'user'
       }
     ]
+  };
+};
+
+
+export const createClub = ({
+  ownerId,
+  type,
+  label,
+  loft = null
+}) => {
+  const now = new Date().toISOString();
+
+  return {
+    id: createId('club'),
+    ownerId,
+    type,
+    label,
+    loft,
+    status: 'active',
+    revision: 1,
+    createdAt: now,
+    updatedAt: now,
+    retiredAt: null
+  };
+};
+
+export const updateClub = (club, changes = {}) => {
+  if (!club || club.status !== 'active') {
+    return club;
+  }
+
+  const allowed = {};
+
+  if ('type' in changes) {
+    allowed.type = changes.type;
+  }
+
+  if ('label' in changes) {
+    allowed.label = changes.label;
+  }
+
+  if ('loft' in changes) {
+    allowed.loft = changes.loft;
+  }
+
+  if (Object.keys(allowed).length === 0) {
+    return club;
+  }
+
+  return {
+    ...club,
+    ...allowed,
+    revision: (club.revision || 1) + 1,
+    updatedAt: new Date().toISOString()
+  };
+};
+
+export const retireClub = club => {
+  if (!club || club.status === 'retired') {
+    return club;
+  }
+
+  const now = new Date().toISOString();
+
+  return {
+    ...club,
+    status: 'retired',
+    revision: (club.revision || 1) + 1,
+    updatedAt: now,
+    retiredAt: now
+  };
+};
+
+export const replaceClub = (club, replacement = {}) => {
+  if (!club || club.status !== 'active') {
+    return null;
+  }
+
+  const retiredClub = retireClub(club);
+
+  const newClub = createClub({
+    ownerId: club.ownerId,
+    type: replacement.type ?? club.type,
+    label: replacement.label ?? club.label,
+    loft: replacement.loft ?? club.loft
+  });
+
+  return {
+    retiredClub,
+    newClub
   };
 };
 

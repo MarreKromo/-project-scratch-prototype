@@ -3,7 +3,7 @@ import {WifiOff,Sparkles,Target,Activity,ChevronLeft} from 'lucide-react';
 import {journeys,defaultCourse,makeRound} from './data/prototypeData.js';
 import {metrics,METRICS_VERSION,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
 import {coach as buildCoach} from './logic/coachEngine.js';
-import {load,save,normalize,updateHandicap,createId} from './logic/storage.js';
+import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 export default function App(){
@@ -20,6 +20,91 @@ export default function App(){
 );
   
  const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses.find(c=>c.id===stored.activeRound?.meta?.courseId)||courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(stored.activeRound?.meta?.currentHole||1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
+ const [equipment,setEquipment]=useState(stored.equipment); 
+ const [clubForm,setClubForm]=useState({
+  type:'',
+  label:'',
+  loft:''
+});
+
+ const [selectedClubId,setSelectedClubId]=useState(null);
+
+ const [editClubForm,setEditClubForm]=useState({
+  type:'',
+  label:'',
+  loft:''
+});
+
+ const [replaceClubForm,setReplaceClubForm]=useState({
+  type:'',
+  label:'',
+  loft:''
+});
+ 
+ const addClub = ({type,label,loft=null}) => {
+  const club = createClub({
+    ownerId: stored.identity.id,
+    type,
+    label,
+    loft
+  });
+
+  setEquipment(current => ({
+    ...current,
+    clubs: [...current.clubs, club]
+  }));
+
+  return club;
+};
+ 
+ const editClub = (clubId, changes) => {
+  setEquipment(current => ({
+    ...current,
+    clubs: current.clubs.map(club =>
+      club.id === clubId
+        ? updateClub(club, changes)
+        : club
+    )
+  }));
+};
+
+const removeClub = clubId => {
+  setEquipment(current => ({
+    ...current,
+    clubs: current.clubs.map(club =>
+      club.id === clubId
+        ? retireClub(club)
+        : club
+    )
+  }));
+};
+
+ const replaceBagClub = (clubId, replacement) => {
+  setEquipment(current => {
+    const oldClub = current.clubs.find(
+      club => club.id === clubId
+    );
+
+    const result = replaceClub(oldClub, replacement);
+
+    if (!result) {
+      return current;
+    }
+
+    return {
+      ...current,
+      clubs: [
+        ...current.clubs.map(club =>
+          club.id === clubId
+            ? result.retiredClub
+            : club
+        ),
+        result.newClub
+      ]
+    };
+  });
+};
+ 
  const [roundActive,setRoundActive]=useState(Boolean(stored.activeRound));  
  const [roundDraft,setRoundDraft]=useState(stored.activeRound?.meta||null);
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
@@ -29,12 +114,13 @@ export default function App(){
   onboarding,
   journey,
   profile,
+  equipment,
   courses,
   activeRound:roundActive ? {meta:roundDraft,holes:round} : null,
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,courses,round,rounds,roundActive,roundDraft]); 
+}),[onboarding,journey,profile,equipment,courses,round,rounds,roundActive,roundDraft]); 
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
 useEffect(()=>{
   if(roundActive) setRoundDraft(d=>d?{
@@ -95,6 +181,7 @@ useEffect(()=>{
      onboarding,
      journey,
      profile,
+     equipment,
      courses,
      activeRound:null,
      lastRound:saved,
@@ -122,7 +209,284 @@ goto('saved');
  {screen==='welcome'&&<Page className="welcome"><Eyebrow>Better every round</Eyebrow><h1>Turn every round into your next advantage.</h1><p>Understand what shaped your score, commit to one focus and carry a measurable target into the next round.</p><Primary onClick={()=>{setOnboarding({status:'journey',completedAt:null});goto('journey')}}>Start your journey</Primary></Page>}
  {screen==='journey'&&<Page><Eyebrow>Your journey</Eyebrow><h1>What are you chasing?</h1><p>Choose the next scoring level that matters to you.</p>{journeys.map(x=><Choice key={x} on={journey===x} onClick={()=>setJourney(x)}>{x}</Choice>)}<Primary onClick={()=>{if(!journey)return;setOnboarding({status:'handicap',completedAt:null});goto('handicap')}}>Continue</Primary></Page>}
  {screen==='handicap'&&<Page><Eyebrow>Your profile</Eyebrow><h1>What's your current handicap?</h1><p>Enter your current handicap. The number you provide is used for your development profile and does not calculate or change your official handicap.</p><Label>Current handicap</Label><input type="number" inputMode="decimal" step="0.1" value={handicapInput} onChange={e=>setHandicapInput(e.target.value)} placeholder="e.g. 18.4"/><Primary onClick={()=>{const value=Number(handicapInput);if(!handicapInput.trim()||!Number.isFinite(value))return;setProfile(p=>updateHandicap(p,value));setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Continue</Primary><TextButton onClick={()=>{setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>I don't know my handicap</TextButton></Page>}
- {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Your development</Eyebrow><h1>Make the next round count.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ONE FOCUS</span><small>{a.confidence} confidence</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Why this focus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NEXT ROUND</small><strong>{a.target}</strong></Card><Card className="mini"><small>LATEST</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'No round yet'}</strong></Card></div><Primary onClick={()=>goto('course')}>Start a round</Primary></Page>}
+ {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Your development</Eyebrow><h1>Make the next round count.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ONE FOCUS</span><small>{a.confidence} confidence</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Why this focus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NEXT ROUND</small><strong>{a.target}</strong></Card><Card className="mini"><small>LATEST</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'No round yet'}</strong></Card></div><Primary onClick={()=>goto('course')}>Start a round</Primary><Secondary onClick={()=>goto('bag')}>My Bag</Secondary></Page>}
+ {screen==='bag'&&<Page>
+  <button className="back" onClick={()=>goto('home')}>
+    <ChevronLeft/> Home
+  </button>
+
+  <Eyebrow>My Bag</Eyebrow>
+  <h1>Your equipment.</h1>
+  <p>
+    Keep track of the clubs you actually play.
+    Equipment history stays intact when your bag changes.
+  </p>
+
+  {equipment.clubs.filter(club=>club.status==='active').length===0
+    ? <Notice>No clubs added yet.</Notice>
+    : equipment.clubs
+        .filter(club=>club.status==='active')
+        .map(club=>
+          <Card key={club.id}>
+  <b>{club.label}</b>
+  <p>
+    {club.type}
+    {club.loft!=null ? ` · ${club.loft}°` : ''}
+  </p>
+
+  <TextButton onClick={()=>{
+    setSelectedClubId(club.id);
+
+    setEditClubForm({
+      type:club.type,
+      label:club.label,
+      loft:club.loft==null ? '' : String(club.loft)
+    });
+
+    goto('editClub');
+  }}>
+    Manage club →
+  </TextButton>
+</Card>
+        )
+  }
+
+  <Primary onClick={()=>goto('addClub')}>
+    Add club
+  </Primary>
+</Page>}
+  {screen==='addClub'&&<Page>
+  <button className="back" onClick={()=>goto('bag')}>
+    <ChevronLeft/> My Bag
+  </button>
+
+  <Eyebrow>My Bag</Eyebrow>
+  <h1>Add a club.</h1>
+  <p>
+    Add the equipment you actually play.
+    You can update it later without losing its history.
+  </p>
+
+  <Label>Club type</Label>
+  <input
+    value={clubForm.type}
+    onChange={e=>setClubForm({
+      ...clubForm,
+      type:e.target.value
+    })}
+    placeholder="e.g. Driver"
+  />
+
+  <Label>Club name</Label>
+  <input
+    value={clubForm.label}
+    onChange={e=>setClubForm({
+      ...clubForm,
+      label:e.target.value
+    })}
+    placeholder="e.g. Driver"
+  />
+
+  <Label>Loft · optional</Label>
+  <input
+    type="number"
+    inputMode="decimal"
+    step="0.1"
+    value={clubForm.loft}
+    onChange={e=>setClubForm({
+      ...clubForm,
+      loft:e.target.value
+    })}
+    placeholder="e.g. 10.5"
+  />
+
+  <Primary onClick={()=>{
+    const type=clubForm.type.trim();
+    const label=clubForm.label.trim();
+
+    if(!type||!label)return;
+
+    const loft=clubForm.loft.trim()===''
+      ? null
+      : Number(clubForm.loft);
+
+    if(loft!==null&&!Number.isFinite(loft))return;
+
+    addClub({
+      type,
+      label,
+      loft
+    });
+
+    setClubForm({
+      type:'',
+      label:'',
+      loft:''
+    });
+
+    goto('bag');
+  }}>
+    Save club
+  </Primary>
+</Page>}
+  {screen==='editClub'&&selectedClubId&&<Page>
+  <button className="back" onClick={()=>goto('bag')}>
+    <ChevronLeft/> My Bag
+  </button>
+
+  <Eyebrow>My Bag</Eyebrow>
+  <h1>Manage club.</h1>
+  <p>
+    Update the club's details without changing its identity
+    or losing its history.
+  </p>
+
+  <Label>Club type</Label>
+  <input
+    value={editClubForm.type}
+    onChange={e=>setEditClubForm({
+      ...editClubForm,
+      type:e.target.value
+    })}
+  />
+
+  <Label>Club name</Label>
+  <input
+    value={editClubForm.label}
+    onChange={e=>setEditClubForm({
+      ...editClubForm,
+      label:e.target.value
+    })}
+  />
+
+  <Label>Loft · optional</Label>
+  <input
+    type="number"
+    inputMode="decimal"
+    step="0.1"
+    value={editClubForm.loft}
+    onChange={e=>setEditClubForm({
+      ...editClubForm,
+      loft:e.target.value
+    })}
+  />
+
+  <Primary onClick={()=>{
+    const type=editClubForm.type.trim();
+    const label=editClubForm.label.trim();
+
+    if(!type||!label)return;
+
+    const loft=editClubForm.loft.trim()===''
+      ? null
+      : Number(editClubForm.loft);
+
+    if(loft!==null&&!Number.isFinite(loft))return;
+
+    editClub(selectedClubId,{
+      type,
+      label,
+      loft
+    });
+
+    setSelectedClubId(null);
+    goto('bag');
+  }}>
+    Save changes
+  </Primary>
+  <Secondary onClick={()=>{
+  setReplaceClubForm({
+    type:editClubForm.type,
+    label:'',
+    loft:''
+  });
+
+  goto('replaceClub');
+}}>
+  Replace club
+</Secondary>
+  <Secondary onClick={()=>{
+    removeClub(selectedClubId);
+    setSelectedClubId(null);
+    goto('bag');
+  }}>
+    Retire club
+  </Secondary>
+</Page>}{screen==='replaceClub'&&selectedClubId&&<Page>
+  <button className="back" onClick={()=>goto('editClub')}>
+    <ChevronLeft/> Manage club
+  </button>
+
+  <Eyebrow>My Bag</Eyebrow>
+  <h1>Replace club.</h1>
+  <p>
+    Your current club will be retired and kept in your history.
+    The replacement becomes a new club.
+  </p>
+
+  <Label>Club type</Label>
+  <input
+    value={replaceClubForm.type}
+    onChange={e=>setReplaceClubForm({
+      ...replaceClubForm,
+      type:e.target.value
+    })}
+  />
+
+  <Label>Club name</Label>
+  <input
+    value={replaceClubForm.label}
+    onChange={e=>setReplaceClubForm({
+      ...replaceClubForm,
+      label:e.target.value
+    })}
+    placeholder="e.g. Ping G430"
+  />
+
+  <Label>Loft · optional</Label>
+  <input
+    type="number"
+    inputMode="decimal"
+    step="0.1"
+    value={replaceClubForm.loft}
+    onChange={e=>setReplaceClubForm({
+      ...replaceClubForm,
+      loft:e.target.value
+    })}
+    placeholder="e.g. 10.5"
+  />
+
+  <Primary onClick={()=>{
+    const type=replaceClubForm.type.trim();
+    const label=replaceClubForm.label.trim();
+
+    if(!type||!label)return;
+
+    const loft=replaceClubForm.loft.trim()===''
+      ? null
+      : Number(replaceClubForm.loft);
+
+    if(loft!==null&&!Number.isFinite(loft))return;
+
+    replaceBagClub(selectedClubId,{
+      type,
+      label,
+      loft
+    });
+
+    setSelectedClubId(null);
+
+    setReplaceClubForm({
+      type:'',
+      label:'',
+      loft:''
+    });
+
+    goto('bag');
+  }}>
+    Replace club
+  </Primary>
+</Page>}
  {screen==='course'&&<Page><Eyebrow>Round</Eyebrow><h1>Where did you play?</h1>{courses.map(c=><Card key={c.id} className="courseCard"><button className="coursePick" onClick={()=>{setCourse(c);setHoleCount(c.holes);goto('setup')}}><div><b>{c.name}</b><small>{c.tee} • {c.holes} holes</small></div><span>→</span></button></Card>)}<Card><b>Course missing?</b><p>Create a personal course. No external provider required.</p><Secondary onClick={()=>goto('create')}>Create course</Secondary></Card></Page>}
  {screen==='create'&&<Page><button className="back" onClick={()=>goto('course')}><ChevronLeft/> Courses</button><Eyebrow>Personal course</Eyebrow><h1>Create course</h1><Label>Course name</Label><input value={newCourse.name} onChange={e=>setNewCourse({...newCourse,name:e.target.value})} placeholder="e.g. Hulta Golfklubb"/><Label>Tee</Label><input value={newCourse.tee} onChange={e=>setNewCourse({...newCourse,tee:e.target.value})}/><Label>Round</Label><div className="grid2"><Choice on={newCourse.holes===18} onClick={()=>setNewCourse({...newCourse,holes:18})}>18 holes</Choice><Choice on={newCourse.holes===9} onClick={()=>setNewCourse({...newCourse,holes:9,pars:newCourse.pars.split(',').slice(0,9).join(',')})}>9 holes</Choice></div><Label>Par sequence</Label><textarea value={newCourse.pars} onChange={e=>setNewCourse({...newCourse,pars:e.target.value})}/><small>Use comma-separated pars. Rating, Slope and distances stay optional.</small><Primary onClick={addCourse}>Save personal course</Primary></Page>}
  {screen==='setup'&&<Page><Eyebrow>Round setup</Eyebrow><h1>{course.name}</h1><Card><Label>Tee</Label><Choice on>{course.tee}</Choice><Label>Round</Label><div className="grid2"><Choice on={holeCount===18} onClick={()=>course.holes>=18&&setHoleCount(18)}>18 holes</Choice><Choice on={holeCount===9} onClick={()=>setHoleCount(9)}>9 holes</Choice></div><Label>Mode</Label><div className="grid2"><Choice on={mode==='Standard'} onClick={()=>setMode('Standard')}>Standard</Choice><Choice on={mode==='Practice'} onClick={()=>setMode('Practice')}>Practice</Choice></div></Card><Primary onClick={startRound}>Start {holeCount}-hole round</Primary></Page>}
