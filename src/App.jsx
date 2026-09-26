@@ -37,7 +37,11 @@ export default function App(){
 }),[onboarding,journey,profile,courses,round,rounds,roundActive,roundDraft]); 
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
 useEffect(()=>{
-  if(roundActive) setRoundDraft(d=>d?{...d,currentHole:hole}:d);
+  if(roundActive) setRoundDraft(d=>d?{
+    ...d,
+    currentHole:hole,
+    updatedAt:new Date().toISOString()
+  }:d);
 },[hole,roundActive]);
  const startRound=()=>{
   setRound(makeRound(course,holeCount));
@@ -49,7 +53,8 @@ useEffect(()=>{
     tee:course.tee,
     roundType:holeCount,
     mode:mode.toLowerCase(),
-    startedAt:new Date().toISOString()
+    startedAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
   });
   setRoundActive(true);
   setHole(1);
