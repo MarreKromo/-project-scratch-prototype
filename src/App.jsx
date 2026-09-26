@@ -26,11 +26,11 @@ export default function App(){
   journey,
   profile,
   courses,
-  activeRound:round,
+  activeRound:roundActive ? round : null,
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,courses,round,rounds]);
+}),[onboarding,journey,profile,courses,round,rounds,roundActive]);
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
  const startRound=()=>{setRound(makeRound(course,holeCount));setHole(1);goto('hole')};
  const demo=()=>setRound(r=>r.map((x,i)=>({...x,score:[5,4,3,6,4,5,3,5,4,5,4,3,6,4,4,4,5,4][i]??x.par,putts:[2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2][i]??2,gir:i%3===0,tee:x.par===3?null:(i===4||i===12?'Right':i===7?'Penalty':'Fairway'),penalty:i===7||i===12?1:0,touched:true})));
