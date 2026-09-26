@@ -76,6 +76,7 @@ useEffect(()=>{
     tee:course.tee,
     date:new Date().toISOString(),
     round:[...round],
+    metricsVersion:METRICS_VERSION,
     metrics:mm,
     analysis:mode==='Standard'?buildCoach(mm):null
   };
