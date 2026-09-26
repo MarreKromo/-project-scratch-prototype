@@ -201,6 +201,7 @@ export const createClub = ({
     retiredAt: null
   };
 };
+
 export const retireClub = club => {
   if (!club || club.status === 'retired') {
     return club;
@@ -216,5 +217,6 @@ export const retireClub = club => {
     retiredAt: now
   };
 };
+
 export const hasLegacyDemoData = () =>
   localStorage.getItem(LEGACY_DEMO_KEY) !== null;
