@@ -178,6 +178,26 @@ export const updateHandicap = (profile, value) => {
     ]
   };
 };
+export const createClub = ({
+  ownerId,
+  type,
+  label,
+  loft = null
+}) => {
+  const now = new Date().toISOString();
 
+  return {
+    id: createId('club'),
+    ownerId,
+    type,
+    label,
+    loft,
+    status: 'active',
+    revision: 1,
+    createdAt: now,
+    updatedAt: now,
+    retiredAt: null
+  };
+};
 export const hasLegacyDemoData = () =>
   localStorage.getItem(LEGACY_DEMO_KEY) !== null;
