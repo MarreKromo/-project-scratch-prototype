@@ -50,7 +50,9 @@ export const createInitialState = () => ({
 equipment: {
   clubs: []
 },
-
+training: {
+  activities: []
+},
 coach: {
     analyses: [],
     activeFocus: null
