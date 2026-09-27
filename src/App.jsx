@@ -3,7 +3,7 @@ import {WifiOff,Sparkles,Target,Activity,ChevronLeft} from 'lucide-react';
 import {journeys,defaultCourse,makeRound} from './data/prototypeData.js';
 import {metrics,METRICS_VERSION,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
 import {coach as buildCoach} from './logic/coachEngine.js';
-import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub,createTrainingActivity} from './logic/storage.js';
+import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,...,replaceClub,createTrainingActivity,updateTrainingActivity,voidTrainingActivity} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 export default function App(){
@@ -34,6 +34,28 @@ export default function App(){
   }));
 
   return activity;
+};
+
+ const editTrainingActivity = (activityId, changes) => {
+  setTraining(current => ({
+    ...current,
+    activities: current.activities.map(activity =>
+      activity.id === activityId
+        ? updateTrainingActivity(activity, changes)
+        : activity
+    )
+  }));
+};
+
+const removeTrainingActivity = activityId => {
+  setTraining(current => ({
+    ...current,
+    activities: current.activities.map(activity =>
+      activity.id === activityId
+        ? voidTrainingActivity(activity)
+        : activity
+    )
+  }));
 };
  
  const [clubForm,setClubForm]=useState({
