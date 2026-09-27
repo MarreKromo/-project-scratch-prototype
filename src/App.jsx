@@ -3,7 +3,7 @@ import {WifiOff,Sparkles,Target,Activity,ChevronLeft} from 'lucide-react';
 import {journeys,defaultCourse,makeRound} from './data/prototypeData.js';
 import {metrics,METRICS_VERSION,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
 import {coach as buildCoach} from './logic/coachEngine.js';
-import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub} from './logic/storage.js';
+import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub,createTrainingActivity} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 export default function App(){
@@ -22,6 +22,20 @@ export default function App(){
  const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses.find(c=>c.id===stored.activeRound?.meta?.courseId)||courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(stored.activeRound?.meta?.currentHole||1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const [equipment,setEquipment]=useState(stored.equipment); 
  const [training,setTraining]=useState(stored.training);
+ const addTrainingActivity = activityData => {
+ const activity = createTrainingActivity({
+    ownerId: stored.identity.id,
+    ...activityData
+  });
+
+  setTraining(current => ({
+    ...current,
+    activities: [...current.activities, activity]
+  }));
+
+  return activity;
+};
+ 
  const [clubForm,setClubForm]=useState({
   type:'',
   label:'',
