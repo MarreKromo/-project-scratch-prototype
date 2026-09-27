@@ -21,6 +21,7 @@ export default function App(){
   
  const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses.find(c=>c.id===stored.activeRound?.meta?.courseId)||courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(stored.activeRound?.meta?.currentHole||1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const [equipment,setEquipment]=useState(stored.equipment); 
+ const [training,setTraining]=useState(stored.training);
  const [clubForm,setClubForm]=useState({
   type:'',
   label:'',
@@ -120,7 +121,7 @@ const removeClub = clubId => {
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,equipment,courses,round,rounds,roundActive,roundDraft]); 
+}),[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft];
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
 useEffect(()=>{
   if(roundActive) setRoundDraft(d=>d?{
