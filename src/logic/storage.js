@@ -308,3 +308,47 @@ export const createTrainingActivity = ({
     updatedAt: now
   };
 };
+
+export const updateTrainingActivity = (
+  activity,
+  changes = {}
+) => {
+  if (!activity || activity.status !== 'active') {
+    return activity;
+  }
+
+  const allowed = {};
+
+  if ('type' in changes) {
+    allowed.type = changes.type;
+  }
+
+  if ('durationMinutes' in changes) {
+    allowed.durationMinutes = changes.durationMinutes;
+  }
+
+  if ('occurredAt' in changes) {
+    allowed.occurredAt = changes.occurredAt;
+  }
+
+  if ('category' in changes) {
+    allowed.category = changes.category;
+  }
+
+  if ('clubIds' in changes) {
+    allowed.clubIds = Array.isArray(changes.clubIds)
+      ? changes.clubIds
+      : [];
+  }
+
+  if (Object.keys(allowed).length === 0) {
+    return activity;
+  }
+
+  return {
+    ...activity,
+    ...allowed,
+    revision: (activity.revision || 1) + 1,
+    updatedAt: new Date().toISOString()
+  };
+};
