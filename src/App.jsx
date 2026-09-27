@@ -36,6 +36,13 @@ export default function App(){
     ...activityData
   });
 
+  const [selectedTrainingId,setSelectedTrainingId]=useState(null);
+
+const [editTrainingForm,setEditTrainingForm]=useState({
+  type:'',
+  durationMinutes:''
+});
+  
   setTraining(current => ({
     ...current,
     activities: [...current.activities, activity]
@@ -271,11 +278,23 @@ goto('saved');
     ? <Notice>No training logged yet.</Notice>
     : training.activities
         .filter(activity=>activity.status==='active')
-        .map(activity=>
-          <Card key={activity.id}>
-            <b>{activity.type}</b>
-            <p>{activity.durationMinutes} min</p>
-          </Card>
+        .map(activity=>          <Card key={activity.id}>
+         <b>{activity.type}</b>
+         <p>{activity.durationMinutes} min</p>
+
+           <TextButton onClick={()=>{
+    setSelectedTrainingId(activity.id);
+
+    setEditTrainingForm({
+      type:activity.type,
+      durationMinutes:String(activity.durationMinutes)
+    });
+
+    goto('editTraining');
+  }}>
+    Edit training →
+  </TextButton>
+</Card>
         )
   }
 
