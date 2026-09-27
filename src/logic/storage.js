@@ -281,3 +281,30 @@ export const replaceClub = (club, replacement = {}) => {
 
 export const hasLegacyDemoData = () =>
   localStorage.getItem(LEGACY_DEMO_KEY) !== null;
+
+export const createTrainingActivity = ({
+  ownerId,
+  type,
+  durationMinutes,
+  occurredAt = new Date().toISOString(),
+  source = 'manual',
+  category = null,
+  clubIds = []
+}) => {
+  const now = new Date().toISOString();
+
+  return {
+    id: createId('training'),
+    ownerId,
+    type,
+    durationMinutes,
+    occurredAt,
+    source,
+    category,
+    clubIds: Array.isArray(clubIds) ? clubIds : [],
+    status: 'active',
+    revision: 1,
+    createdAt: now,
+    updatedAt: now
+  };
+};
