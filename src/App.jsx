@@ -283,6 +283,69 @@ goto('saved');
     Log training
   </Primary>
 </Page>}
+
+  {screen==='logTraining'&&<Page>
+  <button className="back" onClick={()=>goto('training')}>
+    <ChevronLeft/> Training
+  </button>
+
+  <Eyebrow>Training</Eyebrow>
+  <h1>Log training.</h1>
+  <p>
+    Record the work you put in away from your rounds.
+  </p>
+
+  <Label>Training type</Label>
+
+  {['range','putting','chipping','simulator','gym','lesson'].map(type=>
+    <Choice
+      key={type}
+      on={trainingForm.type===type}
+      onClick={()=>setTrainingForm({
+        ...trainingForm,
+        type
+      })}
+    >
+      {type}
+    </Choice>
+  )}
+
+  <Label>Duration · minutes</Label>
+  <input
+    type="number"
+    inputMode="numeric"
+    min="1"
+    value={trainingForm.durationMinutes}
+    onChange={e=>setTrainingForm({
+      ...trainingForm,
+      durationMinutes:e.target.value
+    })}
+    placeholder="e.g. 60"
+  />
+
+  <Primary onClick={()=>{
+    const durationMinutes=Number(trainingForm.durationMinutes);
+
+    if(!trainingForm.type)return;
+    if(!Number.isFinite(durationMinutes)||durationMinutes<=0)return;
+
+    addTrainingActivity({
+      type:trainingForm.type,
+      durationMinutes
+    });
+
+    setTrainingForm({
+      type:'',
+      durationMinutes:'',
+      category:'',
+      clubIds:[]
+    });
+
+    goto('training');
+  }}>
+    Save training
+  </Primary>
+</Page>}
   
  {screen==='bag'&&<Page>
   <button className="back" onClick={()=>goto('home')}>
@@ -403,6 +466,7 @@ goto('saved');
     Save club
   </Primary>
 </Page>}
+  
   {screen==='editClub'&&selectedClubId&&<Page>
   <button className="back" onClick={()=>goto('bag')}>
     <ChevronLeft/> My Bag
