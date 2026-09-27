@@ -352,3 +352,19 @@ export const updateTrainingActivity = (
     updatedAt: new Date().toISOString()
   };
 };
+
+export const voidTrainingActivity = activity => {
+  if (!activity || activity.status !== 'active') {
+    return activity;
+  }
+
+  const now = new Date().toISOString();
+
+  return {
+    ...activity,
+    status: 'voided',
+    revision: (activity.revision || 1) + 1,
+    updatedAt: now,
+    voidedAt: now
+  };
+};
