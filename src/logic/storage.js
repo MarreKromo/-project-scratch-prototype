@@ -134,6 +134,14 @@ equipment: {
     : []
 },
 
+ training: {
+  ...base.training,
+  ...(state?.training || {}),
+  activities: Array.isArray(state?.training?.activities)
+    ? state.training.activities
+    : []
+},
+    
 coach: {
       ...base.coach,
       ...(state?.coach || {}),
