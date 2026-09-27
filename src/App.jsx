@@ -29,6 +29,13 @@ export default function App(){
   category:'',
   clubIds:[]
 });
+
+const [selectedTrainingId,setSelectedTrainingId]=useState(null);
+
+const [editTrainingForm,setEditTrainingForm]=useState({
+  type:'',
+  durationMinutes:''
+});
  
  const addTrainingActivity = activityData => {
  const activity = createTrainingActivity({
@@ -36,13 +43,6 @@ export default function App(){
     ...activityData
   });
 
-  const [selectedTrainingId,setSelectedTrainingId]=useState(null);
-
-const [editTrainingForm,setEditTrainingForm]=useState({
-  type:'',
-  durationMinutes:''
-});
-  
   setTraining(current => ({
     ...current,
     activities: [...current.activities, activity]
