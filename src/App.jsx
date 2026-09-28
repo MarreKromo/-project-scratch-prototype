@@ -32,7 +32,26 @@ export default function App(){
 
 const [selectedTrainingId,setSelectedTrainingId]=useState(null);
 
-const [editTrainingForm,setEditTrainingForm]=useState({
+ const activeTraining=training.activities.filter(
+  activity=>activity.status==='active'
+);
+
+const totalTrainingMinutes=activeTraining.reduce(
+  (sum,activity)=>sum+(Number(activity.durationMinutes)||0),
+  0
+);
+
+const totalTrainingHours=totalTrainingMinutes/60;
+const tenKProgress=Math.min((totalTrainingHours/10000)*100,100);
+
+const trainingMilestones=[
+  10,25,50,100,250,500,1000,2500,5000,10000
+];
+
+const nextTrainingMilestone=
+  trainingMilestones.find(hours=>hours>totalTrainingHours)??10000;
+
+ const [editTrainingForm,setEditTrainingForm]=useState({
   type:'',
   durationMinutes:''
 });
