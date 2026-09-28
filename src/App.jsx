@@ -365,6 +365,60 @@ goto('saved');
     Save training
   </Primary>
 </Page>}
+
+  {screen==='editTraining'&&<Page>
+  <button className="back" onClick={()=>goto('training')}>
+    <ChevronLeft/> Training
+  </button>
+
+  <Eyebrow>Training</Eyebrow>
+  <h1>Edit training.</h1>
+
+  <Label>Training type</Label>
+
+  {['range','putting','chipping','simulator','gym','lesson'].map(type=>
+    <Choice
+      key={type}
+      on={editTrainingForm.type===type}
+      onClick={()=>setEditTrainingForm({
+        ...editTrainingForm,
+        type
+      })}
+    >
+      {type}
+    </Choice>
+  )}
+
+  <Label>Duration · minutes</Label>
+  <input
+    type="number"
+    inputMode="numeric"
+    min="1"
+    value={editTrainingForm.durationMinutes}
+    onChange={e=>setEditTrainingForm({
+      ...editTrainingForm,
+      durationMinutes:e.target.value
+    })}
+  />
+
+  <Primary onClick={()=>{
+    const durationMinutes=Number(editTrainingForm.durationMinutes);
+
+    if(!selectedTrainingId)return;
+    if(!editTrainingForm.type)return;
+    if(!Number.isFinite(durationMinutes)||durationMinutes<=0)return;
+
+    editTrainingActivity(selectedTrainingId,{
+      type:editTrainingForm.type,
+      durationMinutes
+    });
+
+    setSelectedTrainingId(null);
+    goto('training');
+  }}>
+    Save changes
+  </Primary>
+</Page>}
   
  {screen==='bag'&&<Page>
   <button className="back" onClick={()=>goto('home')}>
