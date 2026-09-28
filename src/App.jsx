@@ -235,6 +235,7 @@ useEffect(()=>{
      journey,
      profile,
      equipment,
+     training,
      courses,
      activeRound:null,
      lastRound:saved,
