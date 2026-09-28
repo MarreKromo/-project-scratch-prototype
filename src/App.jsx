@@ -418,7 +418,17 @@ goto('saved');
   }}>
     Save changes
   </Primary>
-</Page>}
+   
+  <Secondary onClick={()=>{
+  if(!selectedTrainingId)return;
+
+  removeTrainingActivity(selectedTrainingId);
+  setSelectedTrainingId(null);
+  goto('training');
+}}>
+  Remove training
+</Secondary>
+  </Page>}
   
  {screen==='bag'&&<Page>
   <button className="back" onClick={()=>goto('home')}>
