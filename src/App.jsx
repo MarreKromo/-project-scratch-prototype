@@ -135,10 +135,11 @@ const recentTrainingMinutes=activeTraining
 
  const recentGolfHours=
   recentTrainingHours+recentPlayingHours;
- 
+
  const [editTrainingForm,setEditTrainingForm]=useState({
   type:'',
-  durationMinutes:''
+  durationMinutes:'',
+  category:''
 });
  
  const addTrainingActivity = activityData => {
