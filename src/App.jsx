@@ -109,6 +109,9 @@ const recentTrainingMinutes=activeTraining
   );
 });
 
+ const untimedRoundsCount=
+  rounds.length-timedRounds.length;
+
  const recentPlayingMinutes=timedRounds
   .filter(round=>{
     const completedAt=new Date(round.completedAt);
