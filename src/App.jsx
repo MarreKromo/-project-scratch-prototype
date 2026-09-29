@@ -462,10 +462,11 @@ goto('saved');
            <TextButton onClick={()=>{
     setSelectedTrainingId(activity.id);
 
-    setEditTrainingForm({
-      type:activity.type,
-      durationMinutes:String(activity.durationMinutes)
-    });
+     setEditTrainingForm({
+   type:activity.type,
+   durationMinutes:String(activity.durationMinutes),
+   category:activity.category||''
+ });
 
     goto('editTraining');
   }}>
