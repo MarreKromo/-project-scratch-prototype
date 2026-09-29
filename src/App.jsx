@@ -350,10 +350,11 @@ useEffect(()=>{
       progression:mode==='Standard',
       coach:mode==='Standard'
     },
-     status:'complete',
+    status:'complete',
     revision:1,
     createdAt:roundDraft?.startedAt||new Date().toISOString(),
     completedAt:new Date().toISOString(),
+    totalPausedMinutes:Number(roundDraft?.totalPausedMinutes)||0,
     updatedAt:new Date().toISOString(),
     course:course.name,
     tee:course.tee,
