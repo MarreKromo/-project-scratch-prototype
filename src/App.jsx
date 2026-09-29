@@ -596,10 +596,11 @@ goto('saved');
     if(!trainingForm.type)return;
     if(!Number.isFinite(durationMinutes)||durationMinutes<=0)return;
 
-    addTrainingActivity({
-      type:trainingForm.type,
-      durationMinutes
-    });
+ addTrainingActivity({
+    type:trainingForm.type,
+    durationMinutes,
+    category:trainingForm.category||null
+ });
 
     setTrainingForm({
       type:'',
