@@ -66,6 +66,35 @@ const recentTrainingMinutes=activeTraining
   );
 
  const recentTrainingHours=recentTrainingMinutes/60;
+ 
+ const playingMinutes=rounds.reduce(
+  (sum,round)=>{
+    const startedAt=new Date(round.createdAt);
+    const completedAt=new Date(round.completedAt);
+
+    if(
+      !round.createdAt||
+      !round.completedAt||
+      Number.isNaN(startedAt.getTime())||
+      Number.isNaN(completedAt.getTime())
+    ){
+      return sum;
+    }
+
+    const durationMinutes=
+      (completedAt.getTime()-startedAt.getTime())/60000;
+
+    if(durationMinutes<=0){
+      return sum;
+    }
+
+    return sum+durationMinutes;
+  },
+  0
+);
+
+ const playingHours=playingMinutes/60;
+ const totalGolfHours=totalTrainingHours+playingHours;
 
  const [editTrainingForm,setEditTrainingForm]=useState({
   type:'',
@@ -313,20 +342,32 @@ goto('saved');
   <Card>
   <Eyebrow>Golf Time</Eyebrow>
 
-  <h2>{totalTrainingHours.toFixed(1)} h</h2>
-  <p>Total logged training time.</p>
+  <h2>{totalGolfHours.toFixed(1)} h</h2>
+  <p>Total logged golf time.</p>
 
   <div className="dashGrid">
-    <div>
-      <small>LAST 30 DAYS</small>
-      <strong>{recentTrainingHours.toFixed(1)} h</strong>
-    </div>
-
-    <div>
-      <small>SESSIONS</small>
-      <strong>{activeTraining.length}</strong>
-    </div>
+  <div>
+    <small>TRAINING</small>
+    <strong>{totalTrainingHours.toFixed(1)} h</strong>
   </div>
+
+  <div>
+    <small>PLAYING</small>
+    <strong>{playingHours.toFixed(1)} h</strong>
+  </div>
+</div>
+
+<div className="dashGrid">
+  <div>
+    <small>LAST 30 DAYS · TRAINING</small>
+    <strong>{recentTrainingHours.toFixed(1)} h</strong>
+  </div>
+
+  <div>
+    <small>TRAINING SESSIONS</small>
+    <strong>{activeTraining.length}</strong>
+  </div>
+</div>
 
   {Object.keys(trainingByType).length>0&&(
     <>
