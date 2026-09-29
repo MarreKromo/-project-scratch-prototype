@@ -403,10 +403,12 @@ goto('saved');
     <strong>{recentGolfHours.toFixed(1)} h</strong>
   </div>
 
-  <div>
-    <small>TIMED ROUNDS</small>
-    <strong>{timedRounds.length}</strong>
-  </div>
+ <div>
+  <small>TIMED / UNTIMED ROUNDS</small>
+  <strong>
+    {timedRounds.length} / {untimedRoundsCount}
+  </strong>
+ </div>
 </div>
 
 <div className="dashGrid">
