@@ -306,6 +306,37 @@ useEffect(()=>{
   setHole(1);
   goto('hole');
 };
+
+ const toggleRoundPause=()=>{
+  setRoundDraft(current=>{
+    if(!current)return current;
+
+    if(current.pausedAt){
+      const pausedAt=new Date(current.pausedAt);
+      const resumedAt=new Date();
+
+      const pausedMinutes=
+        (resumedAt.getTime()-pausedAt.getTime())/60000;
+
+      return {
+        ...current,
+        pausedAt:null,
+        totalPausedMinutes:
+          (Number(current.totalPausedMinutes)||0)+pausedMinutes,
+        updatedAt:resumedAt.toISOString()
+      };
+    }
+
+    const pausedAt=new Date();
+
+    return {
+      ...current,
+      pausedAt:pausedAt.toISOString(),
+      updatedAt:pausedAt.toISOString()
+    };
+  });
+};
+ 
  const demo=()=>setRound(r=>r.map((x,i)=>({...x,score:[5,4,3,6,4,5,3,5,4,5,4,3,6,4,4,4,5,4][i]??x.par,putts:[2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2][i]??2,gir:i%3===0,tee:x.par===3?null:(i===4||i===12?'Right':i===7?'Penalty':'Fairway'),penalty:i===7||i===12?1:0,touched:true})));
  const saveRound=()=>{
   const mm=metrics(round);
