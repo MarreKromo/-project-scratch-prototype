@@ -441,6 +441,8 @@ goto('saved');
   )}
 </Card>
 
+  <Eyebrow>Training History</Eyebrow>
+  
   {training.activities.filter(activity=>activity.status==='active').length===0
     ? <Notice>No training logged yet.</Notice>
     : training.activities
@@ -448,7 +450,9 @@ goto('saved');
         .map(activity=>          <Card key={activity.id}>
          <b>{activity.type}</b>
          <p>{activity.durationMinutes} min</p>
-
+         <small>
+          {new Date(activity.occurredAt).toLocaleDateString()}
+         </small>
            <TextButton onClick={()=>{
     setSelectedTrainingId(activity.id);
 
