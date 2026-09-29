@@ -445,9 +445,10 @@ goto('saved');
   
   {training.activities.filter(activity=>activity.status==='active').length===0
     ? <Notice>No training logged yet.</Notice>
-    : training.activities
-        .filter(activity=>activity.status==='active')
-        .map(activity=>          <Card key={activity.id}>
+    : [...training.activities]
+    .filter(activity=>activity.status==='active')
+    .sort((a,b)=>new Date(b.occurredAt)-new Date(a.occurredAt))
+    .map(activity=>          <Card key={activity.id}>
          <b>{activity.type}</b>
          <p>{activity.durationMinutes} min</p>
          <small>
