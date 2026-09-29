@@ -42,14 +42,30 @@ const totalTrainingMinutes=activeTraining.reduce(
 );
 
 const totalTrainingHours=totalTrainingMinutes/60;
-const tenKProgress=Math.min((totalTrainingHours/10000)*100,100);
 
-const trainingMilestones=[
-  10,25,50,100,250,500,1000,2500,5000,10000
-];
+ const trainingByType=activeTraining.reduce(
+  (totals,activity)=>{
+    const type=activity.type||'other';
+    totals[type]=(totals[type]||0)+(Number(activity.durationMinutes)||0);
+    return totals;
+  },
+  {}
+);
 
-const nextTrainingMilestone=
-  trainingMilestones.find(hours=>hours>totalTrainingHours)??10000;
+const recentTrainingMinutes=activeTraining
+  .filter(activity=>{
+    const occurredAt=new Date(activity.occurredAt);
+    const thirtyDaysAgo=new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
+
+    return occurredAt>=thirtyDaysAgo;
+  })
+  .reduce(
+    (sum,activity)=>sum+(Number(activity.durationMinutes)||0),
+    0
+  );
+
+ const recentTrainingHours=recentTrainingMinutes/60;
 
  const [editTrainingForm,setEditTrainingForm]=useState({
   type:'',
@@ -294,6 +310,42 @@ goto('saved');
     Log the practice that supports your development.
   </p>
 
+  <Card>
+  <Eyebrow>Golf Time</Eyebrow>
+
+  <h2>{totalTrainingHours.toFixed(1)} h</h2>
+  <p>Total logged training time.</p>
+
+  <div className="dashGrid">
+    <div>
+      <small>LAST 30 DAYS</small>
+      <strong>{recentTrainingHours.toFixed(1)} h</strong>
+    </div>
+
+    <div>
+      <small>SESSIONS</small>
+      <strong>{activeTraining.length}</strong>
+    </div>
+  </div>
+
+  {Object.keys(trainingByType).length>0&&(
+    <>
+      <Eyebrow>By activity</Eyebrow>
+
+      {Object.entries(trainingByType)
+        .sort((a,b)=>b[1]-a[1])
+        .map(([type,minutes])=>(
+          <Stat
+            key={type}
+            a={type.charAt(0).toUpperCase()+type.slice(1)}
+            b={`${(minutes/60).toFixed(1)} h`}
+          />
+        ))
+      }
+    </>
+  )}
+</Card>
+
   {training.activities.filter(activity=>activity.status==='active').length===0
     ? <Notice>No training logged yet.</Notice>
     : training.activities
@@ -333,6 +385,7 @@ goto('saved');
   <p>
     Record the work you put in away from your rounds.
   </p>
+   
 
   <Label>Training type</Label>
 
