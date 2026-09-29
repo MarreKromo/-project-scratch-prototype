@@ -96,6 +96,43 @@ const recentTrainingMinutes=activeTraining
  const playingHours=playingMinutes/60;
  const totalGolfHours=totalTrainingHours+playingHours;
 
+ const timedRounds=rounds.filter(round=>{
+  const startedAt=new Date(round.createdAt);
+  const completedAt=new Date(round.completedAt);
+
+  return (
+    round.createdAt&&
+    round.completedAt&&
+    !Number.isNaN(startedAt.getTime())&&
+    !Number.isNaN(completedAt.getTime())&&
+    completedAt>startedAt
+  );
+});
+
+ const recentPlayingMinutes=timedRounds
+  .filter(round=>{
+    const completedAt=new Date(round.completedAt);
+    const thirtyDaysAgo=new Date();
+
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
+
+    return completedAt>=thirtyDaysAgo;
+  })
+  .reduce(
+    (sum,round)=>
+      sum+
+      (
+        new Date(round.completedAt).getTime()-
+        new Date(round.createdAt).getTime()
+      )/60000,
+    0
+  );
+
+ const recentPlayingHours=recentPlayingMinutes/60;
+
+ const recentGolfHours=
+  recentTrainingHours+recentPlayingHours;
+ 
  const [editTrainingForm,setEditTrainingForm]=useState({
   type:'',
   durationMinutes:''
