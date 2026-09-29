@@ -298,6 +298,8 @@ useEffect(()=>{
     roundType:holeCount,
     mode:mode.toLowerCase(),
     startedAt:new Date().toISOString(),
+    pausedAt:null,
+    totalPausedMinutes:0,
     updatedAt:new Date().toISOString()
   });
   setRoundActive(true);
