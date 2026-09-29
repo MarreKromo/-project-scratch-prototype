@@ -639,6 +639,21 @@ goto('saved');
     </Choice>
   )}
 
+   <Label>Category</Label>
+
+{['driver','woods','irons','wedges','short game','putting'].map(category=>
+  <Choice
+    key={category}
+    on={editTrainingForm.category===category}
+    onClick={()=>setEditTrainingForm({
+      ...editTrainingForm,
+      category
+    })}
+  >
+    {category}
+  </Choice>
+)}
+   
   <Label>Duration · minutes</Label>
   <input
     type="number"
