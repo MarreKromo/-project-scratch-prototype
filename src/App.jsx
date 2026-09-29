@@ -507,7 +507,15 @@ goto('saved');
                 : 'Untimed round'}
             </p>
 
-            <small>
+           <p>
+              {round.roundType||18} holes · {
+               round.mode
+              ? round.mode.charAt(0).toUpperCase()+round.mode.slice(1)
+              : 'Standard'
+            }
+           </p>
+            
+           <small>
               {new Date(
                 round.completedAt||round.date
               ).toLocaleDateString()}
