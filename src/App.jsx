@@ -451,7 +451,12 @@ goto('saved');
     .map(activity=>          <Card key={activity.id}>
          <b>{activity.type}</b>
          <p>{activity.durationMinutes} min</p>
-         <small>
+        
+         {activity.category&&(
+         <p>{activity.category}</p>
+       )}
+        
+        <small>
           {new Date(activity.occurredAt).toLocaleDateString()}
          </small>
            <TextButton onClick={()=>{
