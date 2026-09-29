@@ -396,13 +396,25 @@ goto('saved');
 
 <div className="dashGrid">
   <div>
-    <small>LAST 30 DAYS · TRAINING</small>
+    <small>LAST 30 DAYS</small>
+    <strong>{recentGolfHours.toFixed(1)} h</strong>
+  </div>
+
+  <div>
+    <small>TIMED ROUNDS</small>
+    <strong>{timedRounds.length}</strong>
+  </div>
+</div>
+
+<div className="dashGrid">
+  <div>
+    <small>30D · TRAINING</small>
     <strong>{recentTrainingHours.toFixed(1)} h</strong>
   </div>
 
   <div>
-    <small>TRAINING SESSIONS</small>
-    <strong>{activeTraining.length}</strong>
+    <small>30D · PLAYING</small>
+    <strong>{recentPlayingHours.toFixed(1)} h</strong>
   </div>
 </div>
 
