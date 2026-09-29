@@ -470,6 +470,53 @@ goto('saved');
         )
   }
 
+  <Eyebrow>Round History</Eyebrow>
+
+{rounds.length===0
+  ? <Notice>No rounds logged yet.</Notice>
+  : [...rounds]
+      .sort(
+        (a,b)=>
+          new Date(b.completedAt||b.date)-
+          new Date(a.completedAt||a.date)
+      )
+      .map(round=>{
+        const startedAt=new Date(round.createdAt);
+        const completedAt=new Date(round.completedAt);
+
+        const hasValidTime=
+          round.createdAt&&
+          round.completedAt&&
+          !Number.isNaN(startedAt.getTime())&&
+          !Number.isNaN(completedAt.getTime())&&
+          completedAt>startedAt;
+
+        const durationMinutes=hasValidTime
+          ? Math.round(
+              (completedAt.getTime()-startedAt.getTime())/60000
+            )
+          : null;
+
+        return (
+          <Card key={round.id}>
+            <b>{round.course||'Round'}</b>
+
+            <p>
+              {hasValidTime
+                ? `${durationMinutes} min`
+                : 'Untimed round'}
+            </p>
+
+            <small>
+              {new Date(
+                round.completedAt||round.date
+              ).toLocaleDateString()}
+            </small>
+          </Card>
+        );
+      })
+  }
+  
   <Primary onClick={()=>goto('logTraining')}>
     Log training
   </Primary>
