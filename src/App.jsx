@@ -674,9 +674,10 @@ goto('saved');
     if(!Number.isFinite(durationMinutes)||durationMinutes<=0)return;
 
     editTrainingActivity(selectedTrainingId,{
-      type:editTrainingForm.type,
-      durationMinutes
-    });
+  type:editTrainingForm.type,
+  durationMinutes,
+  category:editTrainingForm.category||null
+});
 
     setSelectedTrainingId(null);
     goto('training');
