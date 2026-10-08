@@ -36,6 +36,18 @@ const getRoundPlayingMinutes=round=>{
   return playingMinutes;
 };
 
+const formatRoundPlayingTime=round=>{
+  const minutes=getRoundPlayingMinutes(round);
+
+  if(minutes===null)return 'Untimed';
+
+  if(minutes<1){
+    return `${Math.max(1,Math.round(minutes*60))} sec`;
+  }
+
+  return `${Math.round(minutes)} min`;
+};
+
 export default function App(){
  const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
   stored.activeRound?.meta?.status==='in_progress'
