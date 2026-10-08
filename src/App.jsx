@@ -127,14 +127,24 @@ return sum+playingMinutes;
 
     return completedAt>=thirtyDaysAgo;
   })
-  .reduce(
-    (sum,round)=>
-      sum+
+.reduce(
+  (sum,round)=>{
+    const elapsedMinutes=
       (
         new Date(round.completedAt).getTime()-
         new Date(round.createdAt).getTime()
-      )/60000,
-    0
+      )/60000;
+
+    const pausedMinutes=
+      Number(round.totalPausedMinutes)||0;
+
+    return sum+Math.max(
+      0,
+      elapsedMinutes-pausedMinutes
+    );
+  },
+  0
+);
   );
 
  const recentPlayingHours=recentPlayingMinutes/60;
