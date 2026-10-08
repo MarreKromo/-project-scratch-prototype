@@ -518,56 +518,16 @@ goto('saved');
         )
   }
 
+  <Card>
   <Eyebrow>Playing History</Eyebrow>
-<p>
-  Your recorded rounds and playing time.
-  Full round details are available under Progress.
-</p>
-
-{rounds.length===0
-  ? <Notice>No rounds logged yet.</Notice>
-  : [...rounds]
-      .sort(
-        (a,b)=>
-          new Date(b.completedAt||b.date)-
-          new Date(a.completedAt||a.date)
-      )
-      .map(round=>{
-        const playingMinutes=getRoundPlayingMinutes(round);
-
-const hasValidTime=playingMinutes!==null;
-
-const durationMinutes=hasValidTime
-  ? Math.round(playingMinutes)
-  : null;
-
-        return (
-          <Card key={round.id}>
-            <b>{round.course||'Round'}</b>
-
-            <p>
-              {hasValidTime
-                ? `${durationMinutes} min`
-                : 'Untimed round'}
-            </p>
-
-           <p>
-              {round.roundType||18} holes · {
-               round.mode
-              ? round.mode.charAt(0).toUpperCase()+round.mode.slice(1)
-              : 'Standard'
-            }
-           </p>
-            
-           <small>
-              {new Date(
-                round.completedAt||round.date
-              ).toLocaleDateString()}
-            </small>
-          </Card>
-        );
-      })
-  }
+  <p>
+    Review your saved rounds, scores and playing time
+    in one place under Progress.
+  </p>
+  <TextButton onClick={()=>goto('roundHistory')}>
+    View Round History →
+  </TextButton>
+</Card>
   
   <Primary onClick={()=>goto('logTraining')}>
     Log training
