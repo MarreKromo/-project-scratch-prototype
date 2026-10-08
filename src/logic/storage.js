@@ -50,7 +50,9 @@ export const createInitialState = () => ({
 equipment: {
   clubs: []
 },
-
+training: {
+  activities: []
+},
 coach: {
     analyses: [],
     activeFocus: null
@@ -132,6 +134,14 @@ equipment: {
     : []
 },
 
+ training: {
+  ...base.training,
+  ...(state?.training || {}),
+  activities: Array.isArray(state?.training?.activities)
+    ? state.training.activities
+    : []
+},
+    
 coach: {
       ...base.coach,
       ...(state?.coach || {}),
@@ -271,3 +281,90 @@ export const replaceClub = (club, replacement = {}) => {
 
 export const hasLegacyDemoData = () =>
   localStorage.getItem(LEGACY_DEMO_KEY) !== null;
+
+export const createTrainingActivity = ({
+  ownerId,
+  type,
+  durationMinutes,
+  occurredAt = new Date().toISOString(),
+  source = 'manual',
+  category = null,
+  clubIds = []
+}) => {
+  const now = new Date().toISOString();
+
+  return {
+    id: createId('training'),
+    ownerId,
+    type,
+    durationMinutes,
+    occurredAt,
+    source,
+    category,
+    clubIds: Array.isArray(clubIds) ? clubIds : [],
+    status: 'active',
+    revision: 1,
+    createdAt: now,
+    updatedAt: now
+  };
+};
+
+export const updateTrainingActivity = (
+  activity,
+  changes = {}
+) => {
+  if (!activity || activity.status !== 'active') {
+    return activity;
+  }
+
+  const allowed = {};
+
+  if ('type' in changes) {
+    allowed.type = changes.type;
+  }
+
+  if ('durationMinutes' in changes) {
+    allowed.durationMinutes = changes.durationMinutes;
+  }
+
+  if ('occurredAt' in changes) {
+    allowed.occurredAt = changes.occurredAt;
+  }
+
+  if ('category' in changes) {
+    allowed.category = changes.category;
+  }
+
+  if ('clubIds' in changes) {
+    allowed.clubIds = Array.isArray(changes.clubIds)
+      ? changes.clubIds
+      : [];
+  }
+
+  if (Object.keys(allowed).length === 0) {
+    return activity;
+  }
+
+  return {
+    ...activity,
+    ...allowed,
+    revision: (activity.revision || 1) + 1,
+    updatedAt: new Date().toISOString()
+  };
+};
+
+export const voidTrainingActivity = activity => {
+  if (!activity || activity.status !== 'active') {
+    return activity;
+  }
+
+  const now = new Date().toISOString();
+
+  return {
+    ...activity,
+    status: 'voided',
+    revision: (activity.revision || 1) + 1,
+    updatedAt: now,
+    voidedAt: now
+  };
+};

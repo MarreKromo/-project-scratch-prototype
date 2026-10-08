@@ -3,9 +3,51 @@ import {WifiOff,Sparkles,Target,Activity,ChevronLeft} from 'lucide-react';
 import {journeys,defaultCourse,makeRound} from './data/prototypeData.js';
 import {metrics,METRICS_VERSION,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
 import {coach as buildCoach} from './logic/coachEngine.js';
-import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub} from './logic/storage.js';
+import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub,createTrainingActivity,updateTrainingActivity,voidTrainingActivity} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
+const getRoundPlayingMinutes=round=>{
+  if(!round?.createdAt||!round?.completedAt)return null;
+
+  const startedAt=new Date(round.createdAt).getTime();
+  const completedAt=new Date(round.completedAt).getTime();
+  const pausedMinutes=Number(round.totalPausedMinutes??0);
+
+  if(
+    !Number.isFinite(startedAt)||
+    !Number.isFinite(completedAt)||
+    !Number.isFinite(pausedMinutes)||
+    pausedMinutes<0
+  ){
+    return null;
+  }
+
+  const elapsedMinutes=(completedAt-startedAt)/60000;
+  const playingMinutes=elapsedMinutes-pausedMinutes;
+
+  if(
+  elapsedMinutes<=0||
+  pausedMinutes>elapsedMinutes||
+  playingMinutes<=0
+){
+  return null;
+}
+
+  return playingMinutes;
+};
+
+const formatRoundPlayingTime=round=>{
+  const minutes=getRoundPlayingMinutes(round);
+
+  if(minutes===null)return 'Untimed';
+
+  if(minutes<1){
+    return `${Math.max(1,Math.round(minutes*60))} sec`;
+  }
+
+  return `${Math.round(minutes)} min`;
+};
+
 export default function App(){
  const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
   stored.activeRound?.meta?.status==='in_progress'
@@ -21,6 +63,134 @@ export default function App(){
   
  const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses.find(c=>c.id===stored.activeRound?.meta?.courseId)||courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(stored.activeRound?.meta?.currentHole||1); const [rounds,setRounds]=useState(stored.rounds||[]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
  const [equipment,setEquipment]=useState(stored.equipment); 
+ const [training,setTraining]=useState(stored.training);
+ 
+ const [trainingForm,setTrainingForm]=useState({
+  type:'',
+  durationMinutes:'',
+  category:'',
+  clubIds:[]
+});
+
+const [selectedTrainingId,setSelectedTrainingId]=useState(null);
+
+ const activeTraining=training.activities.filter(
+  activity=>activity.status==='active'
+);
+
+const totalTrainingMinutes=activeTraining.reduce(
+  (sum,activity)=>sum+(Number(activity.durationMinutes)||0),
+  0
+);
+
+const totalTrainingHours=totalTrainingMinutes/60;
+
+ const trainingByType=activeTraining.reduce(
+  (totals,activity)=>{
+    const type=activity.type||'other';
+    totals[type]=(totals[type]||0)+(Number(activity.durationMinutes)||0);
+    return totals;
+  },
+  {}
+);
+
+const recentTrainingMinutes=activeTraining
+  .filter(activity=>{
+    const occurredAt=new Date(activity.occurredAt);
+    const thirtyDaysAgo=new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
+
+    return occurredAt>=thirtyDaysAgo;
+  })
+  .reduce(
+    (sum,activity)=>sum+(Number(activity.durationMinutes)||0),
+    0
+  );
+
+ const recentTrainingHours=recentTrainingMinutes/60;
+ 
+ const playingMinutes=rounds.reduce(
+  (sum,round)=>{
+    const minutes=getRoundPlayingMinutes(round);
+    return sum+(minutes??0);
+  },
+  0
+);
+
+const playingHours=playingMinutes/60;
+const totalGolfHours=totalTrainingHours+playingHours;
+
+const timedRounds=rounds.filter(
+  round=>getRoundPlayingMinutes(round)!==null
+);
+
+ const untimedRoundsCount=
+  rounds.length-timedRounds.length;
+
+ const recentPlayingMinutes=timedRounds
+  .filter(round=>{
+    const completedAt=new Date(round.completedAt);
+    const thirtyDaysAgo=new Date();
+
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
+
+    return completedAt>=thirtyDaysAgo;
+  })
+.reduce(
+  (sum,round)=>{
+    const minutes=getRoundPlayingMinutes(round);
+    return sum+(minutes??0);
+  },
+  0
+);
+  
+ const recentPlayingHours=recentPlayingMinutes/60;
+
+ const recentGolfHours=
+  recentTrainingHours+recentPlayingHours;
+
+ const [editTrainingForm,setEditTrainingForm]=useState({
+  type:'',
+  durationMinutes:'',
+  category:''
+});
+ 
+ const addTrainingActivity = activityData => {
+ const activity = createTrainingActivity({
+    ownerId: stored.identity.id,
+    ...activityData
+  });
+
+  setTraining(current => ({
+    ...current,
+    activities: [...current.activities, activity]
+  }));
+
+  return activity;
+};
+
+ const editTrainingActivity = (activityId, changes) => {
+  setTraining(current => ({
+    ...current,
+    activities: current.activities.map(activity =>
+      activity.id === activityId
+        ? updateTrainingActivity(activity, changes)
+        : activity
+    )
+  }));
+};
+
+const removeTrainingActivity = activityId => {
+  setTraining(current => ({
+    ...current,
+    activities: current.activities.map(activity =>
+      activity.id === activityId
+        ? voidTrainingActivity(activity)
+        : activity
+    )
+  }));
+};
+ 
  const [clubForm,setClubForm]=useState({
   type:'',
   label:'',
@@ -115,12 +285,13 @@ const removeClub = clubId => {
   journey,
   profile,
   equipment,
+  training,
   courses,
   activeRound:roundActive ? {meta:roundDraft,holes:round} : null,
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,equipment,courses,round,rounds,roundActive,roundDraft]); 
+}),[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft]);
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
 useEffect(()=>{
   if(roundActive) setRoundDraft(d=>d?{
@@ -140,16 +311,59 @@ useEffect(()=>{
     roundType:holeCount,
     mode:mode.toLowerCase(),
     startedAt:new Date().toISOString(),
+    pausedAt:null,
+    totalPausedMinutes:0,
     updatedAt:new Date().toISOString()
   });
   setRoundActive(true);
   setHole(1);
   goto('hole');
 };
+
+ const toggleRoundPause=()=>{
+  setRoundDraft(current=>{
+    if(!current)return current;
+
+    if(current.pausedAt){
+      const pausedAt=new Date(current.pausedAt);
+      const resumedAt=new Date();
+
+      const pausedMinutes=
+        (resumedAt.getTime()-pausedAt.getTime())/60000;
+
+      return {
+        ...current,
+        pausedAt:null,
+        totalPausedMinutes:
+          (Number(current.totalPausedMinutes)||0)+pausedMinutes,
+        updatedAt:resumedAt.toISOString()
+      };
+    }
+
+    const pausedAt=new Date();
+
+    return {
+      ...current,
+      pausedAt:pausedAt.toISOString(),
+      updatedAt:pausedAt.toISOString()
+    };
+  });
+};
+ 
  const demo=()=>setRound(r=>r.map((x,i)=>({...x,score:[5,4,3,6,4,5,3,5,4,5,4,3,6,4,4,4,5,4][i]??x.par,putts:[2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2][i]??2,gir:i%3===0,tee:x.par===3?null:(i===4||i===12?'Right':i===7?'Penalty':'Fairway'),penalty:i===7||i===12?1:0,touched:true})));
  const saveRound=()=>{
-  const mm=metrics(round);
+   const mm=metrics(round);
+     const completedAt=new Date();
 
+  const activePauseMinutes=roundDraft?.pausedAt
+    ? Math.max(
+        0,
+        (completedAt.getTime()-new Date(roundDraft.pausedAt).getTime())/60000
+      )
+    : 0;
+
+  const totalPausedMinutes=
+    (Number(roundDraft?.totalPausedMinutes)||0)+activePauseMinutes;
     const saved={
     id:roundDraft?.id||createId('round'),
     ownerId:stored.identity.id,
@@ -159,10 +373,11 @@ useEffect(()=>{
       progression:mode==='Standard',
       coach:mode==='Standard'
     },
-     status:'complete',
+    status:'complete',
     revision:1,
     createdAt:roundDraft?.startedAt||new Date().toISOString(),
-    completedAt:new Date().toISOString(),
+    completedAt:completedAt.toISOString(),
+    totalPausedMinutes,
     updatedAt:new Date().toISOString(),
     course:course.name,
     tee:course.tee,
@@ -182,6 +397,7 @@ useEffect(()=>{
      journey,
      profile,
      equipment,
+     training,
      courses,
      activeRound:null,
      lastRound:saved,
@@ -209,7 +425,291 @@ goto('saved');
  {screen==='welcome'&&<Page className="welcome"><Eyebrow>Better every round</Eyebrow><h1>Turn every round into your next advantage.</h1><p>Understand what shaped your score, commit to one focus and carry a measurable target into the next round.</p><Primary onClick={()=>{setOnboarding({status:'journey',completedAt:null});goto('journey')}}>Start your journey</Primary></Page>}
  {screen==='journey'&&<Page><Eyebrow>Your journey</Eyebrow><h1>What are you chasing?</h1><p>Choose the next scoring level that matters to you.</p>{journeys.map(x=><Choice key={x} on={journey===x} onClick={()=>setJourney(x)}>{x}</Choice>)}<Primary onClick={()=>{if(!journey)return;setOnboarding({status:'handicap',completedAt:null});goto('handicap')}}>Continue</Primary></Page>}
  {screen==='handicap'&&<Page><Eyebrow>Your profile</Eyebrow><h1>What's your current handicap?</h1><p>Enter your current handicap. The number you provide is used for your development profile and does not calculate or change your official handicap.</p><Label>Current handicap</Label><input type="number" inputMode="decimal" step="0.1" value={handicapInput} onChange={e=>setHandicapInput(e.target.value)} placeholder="e.g. 18.4"/><Primary onClick={()=>{const value=Number(handicapInput);if(!handicapInput.trim()||!Number.isFinite(value))return;setProfile(p=>updateHandicap(p,value));setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Continue</Primary><TextButton onClick={()=>{setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>I don't know my handicap</TextButton></Page>}
- {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Your development</Eyebrow><h1>Make the next round count.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ONE FOCUS</span><small>{a.confidence} confidence</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Why this focus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NEXT ROUND</small><strong>{a.target}</strong></Card><Card className="mini"><small>LATEST</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'No round yet'}</strong></Card></div><Primary onClick={()=>goto('course')}>Start a round</Primary><Secondary onClick={()=>goto('bag')}>My Bag</Secondary></Page>}
+ {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Your development</Eyebrow><h1>Make the next round count.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ONE FOCUS</span><small>{a.confidence} confidence</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Why this focus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NEXT ROUND</small><strong>{a.target}</strong></Card><Card className="mini"><small>LATEST</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'No round yet'}</strong></Card></div><Primary onClick={()=>goto('course')}>Start a round</Primary><Secondary onClick={()=>goto('training')}>Training</Secondary><Secondary onClick={()=>goto('bag')}>My Bag</Secondary></Page>}
+ {screen==='training'&&<Page>
+  <button className="back" onClick={()=>goto('home')}>
+    <ChevronLeft/> Home
+  </button>
+
+  <Eyebrow>Training</Eyebrow>
+  <h1>Build the work behind your rounds.</h1>
+  <p>
+    Log the practice that supports your development.
+  </p>
+
+  <Card>
+  <Eyebrow>Golf Time</Eyebrow>
+
+  <h2>{totalGolfHours.toFixed(1)} h</h2>
+  <p>Total logged golf time.</p>
+
+  <div className="dashGrid">
+  <div>
+    <small>TRAINING</small>
+    <strong>{totalTrainingHours.toFixed(1)} h</strong>
+  </div>
+
+  <div>
+    <small>PLAYING</small>
+    <strong>{playingHours.toFixed(1)} h</strong>
+  </div>
+</div>
+
+<div className="dashGrid">
+  <div>
+    <small>LAST 30 DAYS</small>
+    <strong>{recentGolfHours.toFixed(1)} h</strong>
+  </div>
+
+ <div>
+  <small>TIMED / UNTIMED ROUNDS</small>
+  <strong>
+    {timedRounds.length} / {untimedRoundsCount}
+  </strong>
+ </div>
+</div>
+
+<div className="dashGrid">
+  <div>
+    <small>30D · TRAINING</small>
+    <strong>{recentTrainingHours.toFixed(1)} h</strong>
+  </div>
+
+  <div>
+    <small>30D · PLAYING</small>
+    <strong>{recentPlayingHours.toFixed(1)} h</strong>
+  </div>
+</div>
+
+  {Object.keys(trainingByType).length>0&&(
+    <>
+      <Eyebrow>By activity</Eyebrow>
+
+      {Object.entries(trainingByType)
+        .sort((a,b)=>b[1]-a[1])
+        .map(([type,minutes])=>(
+          <Stat
+            key={type}
+            a={type.charAt(0).toUpperCase()+type.slice(1)}
+            b={`${(minutes/60).toFixed(1)} h`}
+          />
+        ))
+      }
+    </>
+  )}
+</Card>
+
+  <Eyebrow>Training History</Eyebrow>
+  
+  {training.activities.filter(activity=>activity.status==='active').length===0
+    ? <Notice>No training logged yet.</Notice>
+    : [...training.activities]
+    .filter(activity=>activity.status==='active')
+    .sort((a,b)=>new Date(b.occurredAt)-new Date(a.occurredAt))
+    .map(activity=>          <Card key={activity.id}>
+         <b>{activity.type}</b>
+         <p>{activity.durationMinutes} min</p>
+        
+         {activity.category&&(
+         <p>{activity.category}</p>
+       )}
+        
+        <small>
+          {new Date(activity.occurredAt).toLocaleDateString()}
+         </small>
+           <TextButton onClick={()=>{
+    setSelectedTrainingId(activity.id);
+
+     setEditTrainingForm({
+   type:activity.type,
+   durationMinutes:String(activity.durationMinutes),
+   category:activity.category||''
+ });
+
+    goto('editTraining');
+  }}>
+    Edit training →
+  </TextButton>
+</Card>
+        )
+  }
+
+  <Card>
+  <Eyebrow>Playing History</Eyebrow>
+  <p>
+    Review your saved rounds, scores and playing time
+    in one place under Progress.
+  </p>
+  <TextButton onClick={()=>goto('progress')}>
+    View Round History →
+  </TextButton>
+</Card>
+  
+  <Primary onClick={()=>goto('logTraining')}>
+    Log training
+  </Primary>
+</Page>}
+
+  {screen==='logTraining'&&<Page>
+  <button className="back" onClick={()=>goto('training')}>
+    <ChevronLeft/> Training
+  </button>
+
+  <Eyebrow>Training</Eyebrow>
+  <h1>Log training.</h1>
+  <p>
+    Record the work you put in away from your rounds.
+  </p>
+   
+
+  <Label>Training type</Label>
+
+  {['range','putting','chipping','simulator','gym','lesson'].map(type=>
+    <Choice
+      key={type}
+      on={trainingForm.type===type}
+      onClick={()=>setTrainingForm({
+        ...trainingForm,
+        type
+      })}
+    >
+      {type}
+    </Choice>
+  )}
+
+   <Label>Category</Label>
+
+{['driver','woods','irons','wedges','short game','putting'].map(category=>
+  <Choice
+    key={category}
+    on={trainingForm.category===category}
+    onClick={()=>setTrainingForm({
+      ...trainingForm,
+      category
+    })}
+  >
+    {category}
+  </Choice>
+)}
+   
+  <Label>Duration · minutes</Label>
+  <input
+    type="number"
+    inputMode="numeric"
+    min="1"
+    value={trainingForm.durationMinutes}
+    onChange={e=>setTrainingForm({
+      ...trainingForm,
+      durationMinutes:e.target.value
+    })}
+    placeholder="e.g. 60"
+  />
+
+  <Primary onClick={()=>{
+    const durationMinutes=Number(trainingForm.durationMinutes);
+
+    if(!trainingForm.type)return;
+    if(!Number.isFinite(durationMinutes)||durationMinutes<=0)return;
+
+ addTrainingActivity({
+    type:trainingForm.type,
+    durationMinutes,
+    category:trainingForm.category||null
+ });
+
+    setTrainingForm({
+      type:'',
+      durationMinutes:'',
+      category:'',
+      clubIds:[]
+    });
+
+    goto('training');
+  }}>
+    Save training
+  </Primary>
+</Page>}
+
+  {screen==='editTraining'&&<Page>
+  <button className="back" onClick={()=>goto('training')}>
+    <ChevronLeft/> Training
+  </button>
+
+  <Eyebrow>Training</Eyebrow>
+  <h1>Edit training.</h1>
+
+  <Label>Training type</Label>
+
+  {['range','putting','chipping','simulator','gym','lesson'].map(type=>
+    <Choice
+      key={type}
+      on={editTrainingForm.type===type}
+      onClick={()=>setEditTrainingForm({
+        ...editTrainingForm,
+        type
+      })}
+    >
+      {type}
+    </Choice>
+  )}
+
+   <Label>Category</Label>
+
+{['driver','woods','irons','wedges','short game','putting'].map(category=>
+  <Choice
+    key={category}
+    on={editTrainingForm.category===category}
+    onClick={()=>setEditTrainingForm({
+      ...editTrainingForm,
+      category
+    })}
+  >
+    {category}
+  </Choice>
+)}
+   
+  <Label>Duration · minutes</Label>
+  <input
+    type="number"
+    inputMode="numeric"
+    min="1"
+    value={editTrainingForm.durationMinutes}
+    onChange={e=>setEditTrainingForm({
+      ...editTrainingForm,
+      durationMinutes:e.target.value
+    })}
+  />
+
+  <Primary onClick={()=>{
+    const durationMinutes=Number(editTrainingForm.durationMinutes);
+
+    if(!selectedTrainingId)return;
+    if(!editTrainingForm.type)return;
+    if(!Number.isFinite(durationMinutes)||durationMinutes<=0)return;
+
+    editTrainingActivity(selectedTrainingId,{
+  type:editTrainingForm.type,
+  durationMinutes,
+  category:editTrainingForm.category||null
+});
+
+    setSelectedTrainingId(null);
+    goto('training');
+  }}>
+    Save changes
+  </Primary>
+   
+  <Secondary onClick={()=>{
+  if(!selectedTrainingId)return;
+
+  removeTrainingActivity(selectedTrainingId);
+  setSelectedTrainingId(null);
+  goto('training');
+}}>
+  Remove training
+</Secondary>
+  </Page>}
+  
  {screen==='bag'&&<Page>
   <button className="back" onClick={()=>goto('home')}>
     <ChevronLeft/> Home
@@ -329,6 +829,7 @@ goto('saved');
     Save club
   </Primary>
 </Page>}
+  
   {screen==='editClub'&&selectedClubId&&<Page>
   <button className="back" onClick={()=>goto('bag')}>
     <ChevronLeft/> My Bag
@@ -490,14 +991,25 @@ goto('saved');
  {screen==='course'&&<Page><Eyebrow>Round</Eyebrow><h1>Where did you play?</h1>{courses.map(c=><Card key={c.id} className="courseCard"><button className="coursePick" onClick={()=>{setCourse(c);setHoleCount(c.holes);goto('setup')}}><div><b>{c.name}</b><small>{c.tee} • {c.holes} holes</small></div><span>→</span></button></Card>)}<Card><b>Course missing?</b><p>Create a personal course. No external provider required.</p><Secondary onClick={()=>goto('create')}>Create course</Secondary></Card></Page>}
  {screen==='create'&&<Page><button className="back" onClick={()=>goto('course')}><ChevronLeft/> Courses</button><Eyebrow>Personal course</Eyebrow><h1>Create course</h1><Label>Course name</Label><input value={newCourse.name} onChange={e=>setNewCourse({...newCourse,name:e.target.value})} placeholder="e.g. Hulta Golfklubb"/><Label>Tee</Label><input value={newCourse.tee} onChange={e=>setNewCourse({...newCourse,tee:e.target.value})}/><Label>Round</Label><div className="grid2"><Choice on={newCourse.holes===18} onClick={()=>setNewCourse({...newCourse,holes:18})}>18 holes</Choice><Choice on={newCourse.holes===9} onClick={()=>setNewCourse({...newCourse,holes:9,pars:newCourse.pars.split(',').slice(0,9).join(',')})}>9 holes</Choice></div><Label>Par sequence</Label><textarea value={newCourse.pars} onChange={e=>setNewCourse({...newCourse,pars:e.target.value})}/><small>Use comma-separated pars. Rating, Slope and distances stay optional.</small><Primary onClick={addCourse}>Save personal course</Primary></Page>}
  {screen==='setup'&&<Page><Eyebrow>Round setup</Eyebrow><h1>{course.name}</h1><Card><Label>Tee</Label><Choice on>{course.tee}</Choice><Label>Round</Label><div className="grid2"><Choice on={holeCount===18} onClick={()=>course.holes>=18&&setHoleCount(18)}>18 holes</Choice><Choice on={holeCount===9} onClick={()=>setHoleCount(9)}>9 holes</Choice></div><Label>Mode</Label><div className="grid2"><Choice on={mode==='Standard'} onClick={()=>setMode('Standard')}>Standard</Choice><Choice on={mode==='Practice'} onClick={()=>setMode('Practice')}>Practice</Choice></div></Card><Primary onClick={startRound}>Start {holeCount}-hole round</Primary></Page>}
- {screen==='hole'&&cur&&<Page><div className="between"><div><Eyebrow>Hole {hole} · Par {cur.par}</Eyebrow><h1>Enter the truth.</h1></div><button className="bare" onClick={()=>goto('home')}>Save & exit</button></div><div className="roundProgress"><b>{round.filter(completeHole).length}/{round.length}</b><span>complete</span></div><div className="holes">{round.map(x=><button key={x.hole} className={`${x.hole===hole?'current':''} ${completeHole(x)?'done':''}`} onClick={()=>setHole(x.hole)}>{x.hole}</button>)}</div><Label>Gross score</Label><Stepper v={cur.score} set={v=>touch('score',v)}/><Label>Putts</Label><Stepper v={cur.putts} set={v=>touch('putts',v)}/><Label>GIR</Label><div className="grid2"><Choice on={cur.gir===true} onClick={()=>touch('gir',true)}>Yes</Choice><Choice on={cur.gir===false} onClick={()=>touch('gir',false)}>No</Choice></div>{cur.par!==3&&<><Label>Tee result</Label><div className="chips">{tees.map(x=><Choice key={x} on={cur.tee===x} onClick={()=>touch('tee',x)}>{x}</Choice>)}</div></>}<Label>Penalty strokes</Label><div className="grid3">{[0,1,2].map(x=><Choice key={x} on={cur.penalty===x&&cur.touched} onClick={()=>touch('penalty',x)}>{x}</Choice>)}</div><div className="actions"><Secondary onClick={demo}>Fill demo round</Secondary><Primary onClick={()=>hole<round.length?setHole(h=>h+1):goto('review')}>{hole===round.length?'Review round':'Next hole'}</Primary></div></Page>}
+ {screen==='hole'&&cur&&<Page><div className="between"><div><Eyebrow>Hole {hole} · Par {cur.par}</Eyebrow><h1>Enter the truth.</h1></div><button className="bare" onClick={()=>goto('home')}>Save & exit</button></div><div className="roundProgress"><b>{round.filter(completeHole).length}/{round.length}</b><span>complete</span></div><Secondary onClick={toggleRoundPause}>
+ {roundDraft?.pausedAt?'Resume round':'Pause round'}
+ </Secondary><div className="holes">{round.map(x=><button key={x.hole} className={`${x.hole===hole?'current':''} ${completeHole(x)?'done':''}`} onClick={()=>setHole(x.hole)}>{x.hole}</button>)}</div><Label>Gross score</Label><Stepper v={cur.score} set={v=>touch('score',v)}/><Label>Putts</Label><Stepper v={cur.putts} set={v=>touch('putts',v)}/><Label>GIR</Label><div className="grid2"><Choice on={cur.gir===true} onClick={()=>touch('gir',true)}>Yes</Choice><Choice on={cur.gir===false} onClick={()=>touch('gir',false)}>No</Choice></div>{cur.par!==3&&<><Label>Tee result</Label><div className="chips">{tees.map(x=><Choice key={x} on={cur.tee===x} onClick={()=>touch('tee',x)}>{x}</Choice>)}</div></>}<Label>Penalty strokes</Label><div className="grid3">{[0,1,2].map(x=><Choice key={x} on={cur.penalty===x&&cur.touched} onClick={()=>touch('penalty',x)}>{x}</Choice>)}</div><div className="actions"><Secondary onClick={demo}>Fill demo round</Secondary><Primary onClick={()=>hole<round.length?setHole(h=>h+1):goto('review')}>{hole===round.length?'Review round':'Next hole'}</Primary></div></Page>}
  {screen==='review'&&<Page><Eyebrow>Round review</Eyebrow><h1>{m.n===round.length?'Ready to save.':'Round needs attention.'}</h1><Card><Stat a="Completed" b={`${m.n}/${round.length}`}/><Stat a="Score" b={m.n===round.length?m.score:'—'}/><Stat a="Putts" b={m.n===round.length?m.putts:'—'}/><Stat a="Penalties" b={m.n===round.length?m.penalties:'—'}/></Card>{m.n<round.length?<><Notice>Complete all required fields before analysis.</Notice><Secondary onClick={()=>{const i=round.findIndex(x=>!completeHole(x));setHole(i+1);goto('hole')}}>Fix missing holes</Secondary></>:<Primary onClick={saveRound}>Save round</Primary>}</Page>}
  {screen==='saved'&&<Page><Notice ok>Round saved safely on this device.</Notice><Eyebrow>Coach</Eyebrow><h1>{offline?'Analysis queued.':'Your recap is ready.'}</h1><p>Your round has been added to your saved history. It will remain after refresh on this browser.</p>{offline?<Primary onClick={()=>goto('home')}>Back Home</Primary>:<Primary onClick={()=>goto('recap')}>View recap</Primary>}<Secondary onClick={()=>setOffline(x=>!x)}>{offline?'Restore connection':'Simulate offline'}</Secondary></Page>}
  {screen==='recap'&&<Page><Eyebrow>Round recap · {recapMetrics?.score??'—'}</Eyebrow><h1>{recapAnalysis.headline}</h1><div className="scoreStrip"><div><small>SCORE</small><b>{recapMetrics?.score??'—'}</b></div><div><small>PUTTS</small><b>{recapMetrics?.putts??'—'}</b></div><div><small>GIR</small><b>{recapMetrics?.girPct!=null?`${recapMetrics.girPct}%`:'—'}</b></div><div><small>PEN</small><b>{recapMetrics?.penalties??'—'}</b></div></div><Card><b>What shaped the score</b><p>{recapAnalysis.reason}</p><p><strong>Positive:</strong> {recapAnalysis.positive}</p><TextButton onClick={()=>goto('evidence')}>See the evidence →</TextButton></Card><Card className="focusCard"><Eyebrow>One Focus</Eyebrow><h2>{recapAnalysis.label}</h2><p>{recapAnalysis.practice}</p>{recapRound?.eligibility?.coach!==false?<Primary onClick={()=>goto('focus')}>Open One Focus</Primary>:<Primary onClick={()=>goto('home')}>Back Home</Primary>}</Card></Page>}
- {screen==='roundDetail'&&selectedRound&&<Page><button className="back" onClick={()=>goto('progress')}><ChevronLeft/> History</button><Eyebrow>Round history</Eyebrow><h1>{selectedRound.course}</h1><p>{new Date(selectedRound.date).toLocaleDateString('sv-SE')} · {selectedRound.round.length} holes · {selectedRound.tee}</p><Card><Stat a="Score" b={selectedRound.metrics.score}/><Stat a="Putts" b={selectedRound.metrics.putts}/><Stat a="GIR" b={`${selectedRound.metrics.girPct}%`}/><Stat a="Penalties" b={selectedRound.metrics.penalties}/></Card><Eyebrow>Hole by hole</Eyebrow>{selectedRound.round.map(h=><Card key={h.hole} className="roundHistory"><div><b>Hole {h.hole} · Par {h.par}</b><small>{h.par!==3?`Tee: ${h.tee||'—'} · `:''}GIR: {h.gir?'Yes':'No'}</small></div><strong>{h.score}</strong></Card>)}</Page>}
+ {screen==='roundDetail'&&selectedRound&&<Page><button className="back" onClick={()=>goto('progress')}><ChevronLeft/> History</button><Eyebrow>Round history</Eyebrow><h1>{selectedRound.course}</h1><p>{new Date(selectedRound.date).toLocaleDateString('sv-SE')} · {selectedRound.round.length} holes · {selectedRound.tee}</p><Card><Stat
+  a="Playing time"
+  b={formatRoundPlayingTime(selectedRound)}
+/><Stat a="Score" b={selectedRound.metrics.score}/><Stat a="Putts" b={selectedRound.metrics.putts}/><Stat a="GIR" b={`${selectedRound.metrics.girPct}%`}/><Stat a="Penalties" b={selectedRound.metrics.penalties}/></Card><Eyebrow>Hole by hole</Eyebrow>{selectedRound.round.map(h=><Card key={h.hole} className="roundHistory"><div><b>Hole {h.hole} · Par {h.par}</b><small>{h.par!==3?`Tee: ${h.tee||'—'} · `:''}GIR: {h.gir?'Yes':'No'}</small></div><strong>{h.score}</strong></Card>)}</Page>}
  {screen==='evidence'&&<Page><Eyebrow>Why this focus?</Eyebrow><h1>Evidence, not a story.</h1>{recapMetrics?<Card><Stat a="Penalty strokes" b={recapMetrics.penalties}/><Stat a="Right misses" b={recapMetrics.right}/><Stat a="Three-putts" b={recapMetrics.threePutts}/><Stat a="GIR" b={`${recapMetrics.girPct}%`}/></Card>:<Notice>Complete a round to build evidence.</Notice>}<Card><b>Coach interpretation</b><p>{recapAnalysis.reason}</p><small>Confidence: {recapAnalysis.confidence}. This prototype uses deterministic rules, not an LLM, to keep the evidence traceable.</small></Card>{recapRound?.eligibility?.coach!==false?<Primary onClick={()=>goto('focus')}>Continue to One Focus</Primary>:<Primary onClick={()=>goto('home')}>Back Home</Primary>}</Page>}
  {screen==='focus'&&<Page><Eyebrow>One Focus</Eyebrow><h1>{a.label}</h1><p>{a.reason}</p><Card><b>Practice</b><p>{a.practice}</p><hr/><b>Success criterion</b><p>{a.criterion}</p></Card><Card><b>Next-round target</b><p>{a.target}</p></Card><Primary onClick={()=>goto('home')}>Use this focus</Primary></Page>}
  {screen==='coach'&&<Page><Eyebrow>AI Coach</Eyebrow><h1>One useful decision.</h1><Card className="focusCard"><Sparkles/><h2>{a.label}</h2><p>{a.reason}</p><Primary onClick={()=>goto('focus')}>Open focus</Primary></Card>{lastRound&&<Card><b>Latest round</b><p>{lm.score} · {lastRound.course}</p><TextButton onClick={()=>{setSelectedRound(lastRound);goto('recap')}}>Open recap →</TextButton></Card>}<Notice>The prototype coach is deterministic: different round patterns produce different recommendations.</Notice></Page>}
- {screen==='progress'&&<Page><Eyebrow>Progress</Eyebrow><h1>Your game, in numbers.</h1><Card className="progressCard"><Activity/><div><small>ACTIVE FOCUS</small><h2>{a.label}</h2><p>{a.confidence} confidence from current eligible evidence.</p></div></Card><StatGrid/><div className="windowTitle"><Eyebrow>Recent windows</Eyebrow><p>Personal trends unlock as history grows.</p></div><div className="dashGrid">{[5,10,20].map(n=>{const w=eligibleRounds.length>=n?windowMetrics(eligibleRounds,n):null;return <Card className="mini" key={n}><small>LAST {n}</small><strong>{w?`${show(w.scoreAvg)} avg`:'—'}</strong><span>{w?`${show(w.girPct,'%')} GIR`:`Need ${n-eligibleRounds.length} more`}</span></Card>})}</div>{rounds.length>0&&<><div className="windowTitle"><Eyebrow>Round history</Eyebrow></div>{[...rounds].reverse().map(r=><Card className="roundHistory" key={r.id||r.date} onClick={()=>{setSelectedRound(r);goto('roundDetail')}}><div><b>{r.course}</b><small>{new Date(r.date).toLocaleDateString('sv-SE')} · {r.round.length} holes</small></div><strong>{r.metrics.score}</strong></Card>)}</>}<Notice>Up & Down and Sand Save intentionally remain unavailable until the round-entry model captures the required opportunities. Missing data is not shown as 0%.</Notice></Page>}
+ {screen==='progress'&&<Page><Eyebrow>Progress</Eyebrow><h1>Your game, in numbers.</h1><Card className="progressCard"><Activity/><div><small>ACTIVE FOCUS</small><h2>{a.label}</h2><p>{a.confidence} confidence from current eligible evidence.</p></div></Card><StatGrid/><div className="windowTitle"><Eyebrow>Recent windows</Eyebrow><p>Personal trends unlock as history grows.</p></div><div className="dashGrid">{[5,10,20].map(n=>{const w=eligibleRounds.length>=n?windowMetrics(eligibleRounds,n):null;return <Card className="mini" key={n}><small>LAST {n}</small><strong>{w?`${show(w.scoreAvg)} avg`:'—'}</strong><span>{w?`${show(w.girPct,'%')} GIR`:`Need ${n-eligibleRounds.length} more`}</span></Card>})}</div>{rounds.length>0&&<><div className="windowTitle"><Eyebrow>Round history</Eyebrow></div>{[...rounds].reverse().map(r=><Card className="roundHistory" key={r.id||r.date} onClick={()=>{setSelectedRound(r);goto('roundDetail')}}><div><b>{r.course}</b><small>
+  {new Date(r.date).toLocaleDateString('sv-SE')}
+  {' · '}
+  {r.round.length} holes
+  {' · '}
+  {formatRoundPlayingTime(r)}
+</small></div><strong>{r.metrics.score}</strong></Card>)}</>}<Notice>Up & Down and Sand Save intentionally remain unavailable until the round-entry model captures the required opportunities. Missing data is not shown as 0%.</Notice></Page>}
  </main>{!['welcome','journey','handicap'].includes(screen)&&<BottomNav screen={screen} goto={goto}/>}</div>
 }
