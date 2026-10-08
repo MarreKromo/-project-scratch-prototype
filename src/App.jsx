@@ -518,7 +518,11 @@ goto('saved');
         )
   }
 
-  <Eyebrow>Round History</Eyebrow>
+  <Eyebrow>Playing History</Eyebrow>
+<p>
+  Your recorded rounds and playing time.
+  Full round details are available under Progress.
+</p>
 
 {rounds.length===0
   ? <Notice>No rounds logged yet.</Notice>
