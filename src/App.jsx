@@ -104,18 +104,9 @@ const recentTrainingMinutes=activeTraining
 const playingHours=playingMinutes/60;
 const totalGolfHours=totalTrainingHours+playingHours;
 
- const timedRounds=rounds.filter(round=>{
-  const startedAt=new Date(round.createdAt);
-  const completedAt=new Date(round.completedAt);
-
-  return (
-    round.createdAt&&
-    round.completedAt&&
-    !Number.isNaN(startedAt.getTime())&&
-    !Number.isNaN(completedAt.getTime())&&
-    completedAt>startedAt
-  );
-});
+const timedRounds=rounds.filter(
+  round=>getRoundPlayingMinutes(round)!==null
+);
 
  const untimedRoundsCount=
   rounds.length-timedRounds.length;
