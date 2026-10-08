@@ -95,38 +95,11 @@ const recentTrainingMinutes=activeTraining
  
  const playingMinutes=rounds.reduce(
   (sum,round)=>{
-    const startedAt=new Date(round.createdAt);
-    const completedAt=new Date(round.completedAt);
-
-    if(
-      !round.createdAt||
-      !round.completedAt||
-      Number.isNaN(startedAt.getTime())||
-      Number.isNaN(completedAt.getTime())
-    ){
-      return sum;
-    }
-
-const elapsedMinutes=
-  (completedAt.getTime()-startedAt.getTime())/60000;
-
-const pausedMinutes=
-  Number(round.totalPausedMinutes)||0;
-
-const playingMinutes=
-  elapsedMinutes-pausedMinutes;
-
-if(playingMinutes<=0){
-  return sum;
-}
-
-return sum+playingMinutes;
+    const minutes=getRoundPlayingMinutes(round);
+    return sum+(minutes??0);
   },
   0
-);
-
- const playingHours=playingMinutes/60;
- const totalGolfHours=totalTrainingHours+playingHours;
+); const totalGolfHours=totalTrainingHours+playingHours;
 
  const timedRounds=rounds.filter(round=>{
   const startedAt=new Date(round.createdAt);
