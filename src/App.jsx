@@ -81,14 +81,20 @@ const recentTrainingMinutes=activeTraining
       return sum;
     }
 
-    const durationMinutes=
-      (completedAt.getTime()-startedAt.getTime())/60000;
+const elapsedMinutes=
+  (completedAt.getTime()-startedAt.getTime())/60000;
 
-    if(durationMinutes<=0){
-      return sum;
-    }
+const pausedMinutes=
+  Number(round.totalPausedMinutes)||0;
 
-    return sum+durationMinutes;
+const playingMinutes=
+  elapsedMinutes-pausedMinutes;
+
+if(playingMinutes<=0){
+  return sum;
+}
+
+return sum+playingMinutes;
   },
   0
 );
