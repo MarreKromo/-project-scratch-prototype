@@ -131,24 +131,12 @@ const totalGolfHours=totalTrainingHours+playingHours;
   })
 .reduce(
   (sum,round)=>{
-    const elapsedMinutes=
-      (
-        new Date(round.completedAt).getTime()-
-        new Date(round.createdAt).getTime()
-      )/60000;
-
-    const pausedMinutes=
-      Number(round.totalPausedMinutes)||0;
-
-    return sum+Math.max(
-      0,
-      elapsedMinutes-pausedMinutes
-    );
+    const minutes=getRoundPlayingMinutes(round);
+    return sum+(minutes??0);
   },
   0
 );
   
-
  const recentPlayingHours=recentPlayingMinutes/60;
 
  const recentGolfHours=
