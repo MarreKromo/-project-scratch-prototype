@@ -524,7 +524,7 @@ goto('saved');
     Review your saved rounds, scores and playing time
     in one place under Progress.
   </p>
-  <TextButton onClick={()=>goto('roundHistory')}>
+  <TextButton onClick={()=>goto('progress')}>
     View Round History →
   </TextButton>
 </Card>
