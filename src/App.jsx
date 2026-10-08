@@ -529,21 +529,13 @@ goto('saved');
           new Date(a.completedAt||a.date)
       )
       .map(round=>{
-        const startedAt=new Date(round.createdAt);
-        const completedAt=new Date(round.completedAt);
+        const playingMinutes=getRoundPlayingMinutes(round);
 
-        const hasValidTime=
-          round.createdAt&&
-          round.completedAt&&
-          !Number.isNaN(startedAt.getTime())&&
-          !Number.isNaN(completedAt.getTime())&&
-          completedAt>startedAt;
+const hasValidTime=playingMinutes!==null;
 
-        const durationMinutes=hasValidTime
-          ? Math.round(
-              (completedAt.getTime()-startedAt.getTime())/60000
-            )
-          : null;
+const durationMinutes=hasValidTime
+  ? Math.round(playingMinutes)
+  : null;
 
         return (
           <Card key={round.id}>
