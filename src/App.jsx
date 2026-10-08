@@ -6,6 +6,32 @@ import {coach as buildCoach} from './logic/coachEngine.js';
 import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub,createTrainingActivity,updateTrainingActivity,voidTrainingActivity} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
+const getRoundPlayingMinutes=round=>{
+  if(!round?.createdAt||!round?.completedAt)return null;
+
+  const startedAt=new Date(round.createdAt).getTime();
+  const completedAt=new Date(round.completedAt).getTime();
+  const pausedMinutes=Number(round.totalPausedMinutes??0);
+
+  if(
+    !Number.isFinite(startedAt)||
+    !Number.isFinite(completedAt)||
+    !Number.isFinite(pausedMinutes)||
+    pausedMinutes<0
+  ){
+    return null;
+  }
+
+  const elapsedMinutes=(completedAt-startedAt)/60000;
+  const playingMinutes=elapsedMinutes-pausedMinutes;
+
+  if(elapsedMinutes<=0||playingMinutes<=0){
+    return null;
+  }
+
+  return playingMinutes;
+};
+
 export default function App(){
  const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
   stored.activeRound?.meta?.status==='in_progress'
