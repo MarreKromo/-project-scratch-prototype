@@ -1009,9 +1009,7 @@ goto('saved');
   {' · '}
   {r.round.length} holes
   {' · '}
-  {getRoundPlayingMinutes(r)!==null
-    ? `${Math.round(getRoundPlayingMinutes(r))} min playing`
-    : 'Untimed'}
+  {formatRoundPlayingTime(r)}
 </small></div><strong>{r.metrics.score}</strong></Card>)}</>}<Notice>Up & Down and Sand Save intentionally remain unavailable until the round-entry model captures the required opportunities. Missing data is not shown as 0%.</Notice></Page>}
  </main>{!['welcome','journey','handicap'].includes(screen)&&<BottomNav screen={screen} goto={goto}/>}</div>
 }
