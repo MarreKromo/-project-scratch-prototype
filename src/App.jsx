@@ -25,9 +25,13 @@ const getRoundPlayingMinutes=round=>{
   const elapsedMinutes=(completedAt-startedAt)/60000;
   const playingMinutes=elapsedMinutes-pausedMinutes;
 
-  if(elapsedMinutes<=0||playingMinutes<=0){
-    return null;
-  }
+  if(
+  elapsedMinutes<=0||
+  pausedMinutes>elapsedMinutes||
+  playingMinutes<=0
+){
+  return null;
+}
 
   return playingMinutes;
 };
