@@ -145,7 +145,7 @@ return sum+playingMinutes;
   },
   0
 );
-  );
+  
 
  const recentPlayingHours=recentPlayingMinutes/60;
 
