@@ -99,7 +99,10 @@ const recentTrainingMinutes=activeTraining
     return sum+(minutes??0);
   },
   0
-); const totalGolfHours=totalTrainingHours+playingHours;
+);
+
+const playingHours=playingMinutes/60;
+const totalGolfHours=totalTrainingHours+playingHours;
 
  const timedRounds=rounds.filter(round=>{
   const startedAt=new Date(round.createdAt);
