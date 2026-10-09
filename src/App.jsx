@@ -480,6 +480,24 @@ const retryPendingRounds = async () => {
     roundSyncRunning.current = false;
   }
 };
+ 
+useEffect(() => {
+  if (pendingRoundSync.length === 0) return;
+
+  retryPendingRounds();
+}, [pendingRoundSync, rounds]);
+
+useEffect(() => {
+  const handleOnline = () => {
+    retryPendingRounds();
+  };
+
+  window.addEventListener('online', handleOnline);
+
+  return () => {
+    window.removeEventListener('online', handleOnline);
+  };
+}, [pendingRoundSync, rounds]);
 
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
  const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]); 
