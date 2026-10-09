@@ -275,6 +275,32 @@ Project Scratch for Supabase integration.
 - Record failures and fixes before production release.
 - Do not claim security compliance from unit tests alone.
 
+## Existing local data migration
+
+### Current implementation
+- The prototype uses localStorage key project-scratch-v1.
+- Existing state includes identity, rounds, courses,
+  training, equipment, profile and other app data.
+- Account-specific storage is not yet integrated.
+
+### Migration requirements
+- Never overwrite project-scratch-v1 during migration.
+- Preserve a verified backup of existing local state.
+- Validate existing records before importing them.
+- Preserve round history and related course data.
+- Include all existing app data in the migration review.
+- Do not assume all records are ready for cloud storage.
+- Require explicit confirmation before account import.
+- Verify imported data before marking migration complete.
+- Support safe retry after interrupted migration.
+
+### AF-06A.4 implementation gate
+- Inventory the full existing local data schema.
+- Define versioned database migrations.
+- Test migration with realistic existing app data.
+- Confirm no loss of rounds, training or profile data.
+- Keep rollback and recovery available.
+
 ## Acceptance criteria
 - Ownership rules documented for every table.
 - RLS policies designed and reviewed.
