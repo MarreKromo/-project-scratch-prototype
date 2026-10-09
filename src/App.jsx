@@ -529,7 +529,42 @@ setRoundActive(false);
 goto('saved');
   
 };
- const addCourse=()=>{const pars=newCourse.pars.split(',').map(x=>Number(x.trim())).filter(x=>[3,4,5,6].includes(x));if(!newCourse.name.trim()||pars.length!==Number(newCourse.holes))return alert(`Ange ${newCourse.holes} giltiga parvärden.`);const c={id:`personal-${Date.now()}`,name:newCourse.name.trim(),tee:newCourse.tee.trim()||'Tee',holes:Number(newCourse.holes),pars};setCourses(x=>[c,...x]);setCourse(c);setHoleCount(c.holes);goto('setup')};
+ 
+const addCourse = async () => {
+  const pars = newCourse.pars
+    .split(',')
+    .map(x => Number(x.trim()))
+    .filter(x => [3, 4, 5, 6].includes(x));
+
+  if (!newCourse.name.trim() ||
+      pars.length !== Number(newCourse.holes)) {
+    alert(`Ange ${newCourse.holes} giltiga parvärden.`);
+    return;
+  }
+
+  const c = {
+    id: `personal-${Date.now()}`,
+    name: newCourse.name.trim(),
+    tee: newCourse.tee.trim() || 'Tee',
+    holes: Number(newCourse.holes),
+    pars
+  };
+
+  try {
+    const { error } = await saveMyCourse(c);
+
+    if (error) throw error;
+
+    setCourses(current => [...current, c]);
+    setCourse(c);
+    setHoleCount(c.holes);
+    goto('setup');
+  } catch (error) {
+    console.error('COURSE_SAVE_FAILED', error);
+    alert('Golfbanan kunde inte sparas i molnet: ' + error.message);
+  }
+};
+
  const a=lastRound?.analysis||analysis,lm=lastRound?.metrics;
  const recapRound=selectedRound||lastRound;
  const recapMetrics=recapRound?.metrics;
