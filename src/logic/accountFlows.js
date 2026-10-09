@@ -67,3 +67,33 @@ export const getGuestDataDecision = (
   };
 };
 
+export const getSignOutDecision = state => {
+  if (state?.identity?.type !== 'account') {
+    return {
+      allowed: false,
+      reason: 'NOT_SIGNED_IN'
+    };
+  }
+
+  const pending = state?.sync?.pending;
+
+  if (!Array.isArray(pending)) {
+    return {
+      allowed: false,
+      reason: 'SYNC_STATUS_UNKNOWN'
+    };
+  }
+
+  if (pending.length > 0) {
+    return {
+      allowed: false,
+      reason: 'UNSYNCED_DATA_REQUIRES_DECISION'
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: null
+  };
+};
+
