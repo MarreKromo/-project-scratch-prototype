@@ -64,19 +64,43 @@ coach: {
   }
 });
 
+
 export const load = () => {
+  let stored;
+
   try {
-    const stored = localStorage.getItem(K);
+    stored = localStorage.getItem(K);
+  } catch (error) {
+    throw new Error(
+      'STORAGE_READ_FAILED',
+      { cause: error }
+    );
+  }
 
-    if (!stored) {
-      return createInitialState();
-    }
-
-    return JSON.parse(stored);
-  } catch {
+  if (stored === null) {
     return createInitialState();
   }
+
+  try {
+    const parsed = JSON.parse(stored);
+
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      Array.isArray(parsed)
+    ) {
+      throw new Error('Invalid stored state');
+    }
+
+    return parsed;
+  } catch (error) {
+    throw new Error(
+      'STORAGE_CORRUPTED',
+      { cause: error }
+    );
+  }
 };
+
 
 export const save = state => {
   localStorage.setItem(
