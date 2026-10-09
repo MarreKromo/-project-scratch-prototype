@@ -158,9 +158,9 @@ export async function saveMyRound(round) {
     .from('rounds')
     .insert({
       user_id: authData.user.id,
-      course_name: round.courseName ?? null,
-      played_at: round.playedAt ?? null,
-      round_data: round
+      course_name: round.courseName ?? round.course ?? null,
+      played_at: round.playedAt ?? round.date ?? null,
+
     })
     .select('id, user_id, course_name, played_at')
     .single();
