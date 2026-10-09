@@ -111,3 +111,24 @@ create policy "golf_dna_delete_own"
 on public.golf_dna for delete to authenticated
 using (user_id = (select auth.uid()));
 
+-- Automatically create a profile for new users.
+create function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.profiles (id)
+  values (new.id);
+
+  return new;
+end;
+$$;
+
+-- Run after a new Supabase Auth user is created.
+create trigger on_auth_user_created
+after insert on auth.users
+for each row
+execute function public.handle_new_user();
+
