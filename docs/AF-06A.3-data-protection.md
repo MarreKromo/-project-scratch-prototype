@@ -190,6 +190,50 @@ Project Scratch for Supabase integration.
 - Verification failure after import.
 - Account switch during an unfinished import.
 
+## Data export and account deletion
+
+### Data export
+- Authenticated users can request their own data.
+- Export includes profile, rounds, training and Golf DNA.
+- Preserve record IDs, dates and relationships.
+- Use a documented machine-readable format such as JSON.
+- Verify account ownership before preparing the export.
+- Never include another user's private records.
+- Do not include passwords, tokens or service credentials.
+- Failed exports must not modify stored data.
+
+### Account deletion
+- Require a valid authenticated session.
+- Explain what will be permanently deleted.
+- Require explicit confirmation before deletion.
+- Warn about unsynced local and guest data.
+- Prevent accidental deletion of another account.
+- Delete or anonymize associated private data according
+  to the documented retention and legal requirements.
+- Remove the authenticated account through a controlled
+  server-side process.
+- Revoke active sessions and prevent further access.
+- Show completion only after deletion is verified.
+- Handle partial failures without claiming success.
+
+### Recovery and safeguards
+- Offer data export before account deletion.
+- Do not silently delete guest backups.
+- Never store recovery credentials in localStorage.
+- Define retention periods and backup deletion behavior
+  before production launch.
+- Document any legally required retention exceptions.
+
+### Required tests
+- Export all records belonging to User A.
+- Verify that User B's records are excluded.
+- Reject unauthenticated export requests.
+- Reject deletion without explicit confirmation.
+- Prevent cross-account deletion.
+- Verify removal of account-owned private records.
+- Verify authenticated access is revoked after deletion.
+- Handle partial deletion and export failures.
+
 ## Acceptance criteria
 - Ownership rules documented for every table.
 - RLS policies designed and reviewed.
