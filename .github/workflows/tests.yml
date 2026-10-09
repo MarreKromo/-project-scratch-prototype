@@ -17,3 +17,5 @@ jobs:
           node-version: '22'
       - name: Run tests
         run: npm test
+      - name: Build app
+        run: npm run build
