@@ -491,7 +491,10 @@ goto('saved');
   const result = await testSupabaseConnection();
   alert(result.message);
 };
- return <div className="shell"><header><button className="brand" onClick={()=>goto('home')}>PROJECT SCRATCH</button><span className="status">{offline?<><WifiOff size={13}/> OFFLINE</>:'PROTOTYPE v0.3.1'}</span></header><main>
+ return <div className="shell"><header><button className="brand" onClick={()=>goto('home')}>PROJECT SCRATCH</button><span className="status">{offline?<><WifiOff size={13}/> OFFLINE</>:'PROTOTYPE v0.3.1'}</span></header><main> 
+<button onClick={runConnectionTest}>
+  Testa Supabase
+</button>
  {screen==='welcome'&&<Page className="welcome"><Eyebrow>Bättre för varje runda</Eyebrow><h1>Gör varje runda till ett steg framåt.</h1><p>Förstå vad som påverkade din score, välj ett fokus och ta med dig ett tydligt mål till nästa runda.</p><Primary onClick={()=>{setOnboarding({status:'journey',completedAt:null});goto('journey')}}>Starta din resa</Primary></Page>}
  {screen==='journey'&&<Page><Eyebrow>Din resa</Eyebrow><h1>Vad siktar du på?</h1><p>Välj nästa nivå du vill nå.</p>{journeys.map(x=><Choice key={x} on={journey===x} onClick={()=>setJourney(x)}>{x}</Choice>)}<Primary onClick={()=>{if(!journey)return;setOnboarding({status:'handicap',completedAt:null});goto('handicap')}}>Fortsätt</Primary></Page>}
  {screen==='handicap'&&<Page><Eyebrow>Din profil</Eyebrow><h1>Vad har du i handicap?</h1><p>Ange ditt nuvarande handicap. Värdet används för din utvecklingsprofil och ändrar inte ditt officiella handicap.</p><Label>Nuvarande handicap</Label><input type="number" inputMode="decimal" step="0.1" value={handicapInput} onChange={e=>setHandicapInput(e.target.value)} placeholder="t.ex. 18.4"/><Primary onClick={()=>{const value=Number(handicapInput);if(!handicapInput.trim()||!Number.isFinite(value))return;setProfile(p=>updateHandicap(p,value));setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Fortsätt</Primary><TextButton onClick={()=>{setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Jag vet inte mitt handicap</TextButton></Page>}
