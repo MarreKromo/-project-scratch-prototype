@@ -29,7 +29,7 @@ export function metrics(round){
   const threePutts = eligible.filter(x=>x.putts>=3).length;
 
   const birdies =
-    eligible.filter(x=>x.score<x.par).length;
+    eligible.filter(x=>x.score===x.par-1).length;
 
   const pars =
     eligible.filter(x=>x.score===x.par).length;
