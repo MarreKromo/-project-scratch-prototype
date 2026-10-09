@@ -132,3 +132,7 @@ after insert on auth.users
 for each row
 execute function public.handle_new_user();
 
+-- Prevent direct calls to the internal trigger function.
+revoke execute on function public.handle_new_user()
+from public, anon, authenticated;
+
