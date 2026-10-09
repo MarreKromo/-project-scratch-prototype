@@ -72,11 +72,16 @@ coach: {
 });
 
 
-export const load = () => {
+
+export const load = (userId = null) => {
   let stored;
 
   try {
-    stored = localStorage.getItem(K);
+    
+stored = localStorage.getItem(
+  userId ? getAccountStorageKey(userId) : K
+);
+
   } catch (error) {
     throw new Error(
       'STORAGE_READ_FAILED',
