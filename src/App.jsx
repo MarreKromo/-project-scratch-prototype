@@ -51,10 +51,11 @@ const formatRoundPlayingTime=round=>{
   return `${Math.round(minutes)} min`;
 };
 
-const readStartupData = () => {
+const readStartupData = (userId = null) => {
+
   try {
     return {
-      stored: normalize(load()),
+      stored: normalize(load(userId)),
       storageError: null
     };
   } catch (error) {
