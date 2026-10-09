@@ -147,6 +147,49 @@ Project Scratch for Supabase integration.
 - RLS must be tested against the actual database
   during AF-06A.4.
 
+## Guest data migration and backup strategy
+
+### Before migration
+- Identify the authenticated destination account.
+- Verify that the guest dataset is readable.
+- Create and preserve a local guest backup.
+- Check whether the destination account has data.
+- Show a summary of what will be imported.
+- Require explicit user confirmation.
+
+### Migration process
+- Never overwrite existing account records.
+- Assign imported records to the verified account.
+- Use stable source IDs to detect duplicate imports.
+- Record migration progress and results.
+- Import related records without losing relationships.
+- Treat interrupted migrations as recoverable.
+- Never trust a client-supplied owner ID alone.
+
+### After migration
+- Verify imported record counts and relationships.
+- Verify ownership of all imported records.
+- Preserve the guest backup after import.
+- Mark migration complete only after verification.
+- Do not automatically delete local guest history.
+
+### Failure handling
+- Failed imports must not erase guest data.
+- Retrying must not create duplicate records.
+- Partial imports must be detected and recoverable.
+- Existing account data must remain unchanged.
+- Display a clear failure message to the user.
+
+### Required migration tests
+- Import into an empty account.
+- Import into an account with existing history.
+- Interrupted import followed by retry.
+- Duplicate import attempt.
+- Invalid destination account.
+- Missing or corrupted guest data.
+- Verification failure after import.
+- Account switch during an unfinished import.
+
 ## Acceptance criteria
 - Ownership rules documented for every table.
 - RLS policies designed and reviewed.
