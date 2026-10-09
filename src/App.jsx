@@ -151,8 +151,10 @@ useEffect(() => {
         Array.isArray(c.pars)
       );
 
-    setCourses([defaultCourse, ...cloudCourses]);
-  }
+   
+  setCourses(cloudCourses);
+
+ }
 
   loadCloudCourses();
 
