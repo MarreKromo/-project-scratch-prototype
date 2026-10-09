@@ -77,8 +77,9 @@ const StorageErrorScreen = () => (
   </main>
 );
 
-export default function App(){
- const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
+function AppContent({ stored }) {
+  const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
+
   stored.activeRound?.meta?.status==='in_progress'
     ? 'hole'
     : stored.onboarding?.status==='complete'
@@ -1043,4 +1044,14 @@ goto('saved');
   {formatRoundPlayingTime(r)}
 </small></div><strong>{r.metrics.score}</strong></Card>)}</>}<Notice>Up & Down och Sand Save visas först när rundregistreringen kan samla in rätt underlag. Saknade värden visas inte som 0 %.</Notice></Page>}
  </main>{!['welcome','journey','handicap'].includes(screen)&&<BottomNav screen={screen} goto={goto}/>}</div>
+}
+
+export default function App() {
+  const [startup] = useState(readStartupData);
+
+  if (startup.storageError) {
+    return <StorageErrorScreen />;
+  }
+
+  return <AppContent stored={startup.stored} />;
 }
