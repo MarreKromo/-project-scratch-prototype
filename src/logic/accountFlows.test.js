@@ -79,3 +79,40 @@ test('Kontoflödet kan fortsätta utan gästdata', () => {
     reason: null
   });
 });
+
+test('Sparat handicap skyddas', () => {
+  const state = {
+    identity: { type: 'guest' },
+    profile: { selfReportedHandicap: 16.2 }
+  };
+
+  assert.equal(hasLocalGuestData(state), true);
+});
+
+test('Handicapmål skyddas', () => {
+  const state = {
+    identity: { type: 'guest' },
+    profile: { targetHandicap: 0 }
+  };
+
+  assert.equal(hasLocalGuestData(state), true);
+});
+
+test('Resan mot scratch skyddas', () => {
+  const state = {
+    identity: { type: 'guest' },
+    journey: { id: 'scratch-journey' }
+  };
+
+  assert.equal(hasLocalGuestData(state), true);
+});
+
+test('Coachhistorik skyddas', () => {
+  const state = {
+    identity: { type: 'guest' },
+    coach: { analyses: [{ id: 'analysis-1' }] }
+  };
+
+  assert.equal(hasLocalGuestData(state), true);
+});
+
