@@ -121,7 +121,25 @@ useEffect(() => {
         round.metrics
       );
 
-    setRounds(validRounds);
+    
+    setRounds(current => {
+      const merged = new Map();
+
+      for (const round of current) {
+        if (round?.id) {
+          merged.set(round.id, round);
+        }
+      }
+
+      for (const round of validRounds) {
+        if (round?.id && !merged.has(round.id)) {
+          merged.set(round.id, round);
+        }
+      }
+
+      return [...merged.values()];
+    });
+
   }
 
   loadCloudRounds();
