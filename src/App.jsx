@@ -1093,6 +1093,22 @@ export default function App() {
 
 const [session, setSession] = useState(null);
 
+useEffect(() => {
+  supabase.auth.getSession().then(({ data, error }) => {
+    if (!error) setSession(data.session);
+  });
+
+  const { data: listener } = supabase.auth.onAuthStateChange(
+    (_event, nextSession) => {
+      setSession(nextSession);
+    }
+  );
+
+  return () => {
+    listener.subscription.unsubscribe();
+  };
+}, []);
+
   if (startup.storageError) {
     return <StorageErrorScreen />;
   }
