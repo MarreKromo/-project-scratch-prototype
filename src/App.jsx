@@ -816,7 +816,14 @@ const completeOnboarding = async (handicap = null) => {
   </TextButton>
 </Page>}
 
- {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Din utveckling</Eyebrow><h1>Gör nästa runda bättre.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ETT FOKUS</span><small>{a.confidence} tillförlitlighet</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Varför detta fokus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NÄSTA RUNDA</small><strong>{a.target}</strong></Card><Card className="mini"><small>SENASTE</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'Ingen runda ännu'}</strong></Card></div><Primary onClick={()=>goto('course')}>Starta en runda</Primary><Secondary onClick={()=>goto('training')}>Träning</Secondary><Secondary onClick={()=>goto('bag')}>Min bag</Secondary></Page>}
+ {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Din utveckling</Eyebrow><h1>Gör nästa runda bättre.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ETT FOKUS</span><small>{a.confidence} tillförlitlighet</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Varför detta fokus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NÄSTA RUNDA</small><strong>{a.target}</strong></Card><Card className="mini"><small>SENASTE</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'Ingen runda ännu'}</strong></Card></div>
+{roundActive && (
+  <Primary onClick={() => goto('hole')}>
+    Fortsätt påbörjad runda
+  </Primary>
+)}
+<Primary onClick={()=>goto('course')}>Starta en runda</Primary>
+<Secondary onClick={()=>goto('training')}>Träning</Secondary><Secondary onClick={()=>goto('bag')}>Min bag</Secondary></Page>}
  {screen==='training'&&<Page>
   <button className="back" onClick={()=>goto('home')}>
     <ChevronLeft/> Home
