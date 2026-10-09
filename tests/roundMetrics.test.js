@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { metrics } from '../src/logic/roundMetrics.js';
+import { metrics, historyMetrics } from '../src/logic/roundMetrics.js';
 
 test('birdie på par 4 räknas korrekt', () => {
   const round = [{
