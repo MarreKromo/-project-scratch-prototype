@@ -440,27 +440,31 @@ useEffect(()=>{
     analysis:mode==='Standard'?buildCoach(mm):null
   };
   
-  const next = [...rounds, saved];
 
   try {
-
-   save({
-     identity:stored.identity,
-     onboarding,
-     journey,
-     profile,
-     equipment,
-     training,
-     courses,
-     activeRound:null,
-     lastRound:saved,
-     rounds:next,
-     coach:stored.coach,
-     sync:stored.sync
-   });
+    const next = persistCompletedRound(
+      save,
+      {
+        identity: stored.identity,
+        onboarding,
+        journey,
+        profile,
+        equipment,
+        training,
+        courses,
+        activeRound: roundActive
+          ? { meta: roundDraft, holes: round }
+          : null,
+        rounds,
+        coach: stored.coach,
+        sync: stored.sync
+      },
+      saved
+    );
 
     setRounds(next);
     setStorageError(false);
+
   } catch (error) {
     console.error('ROUND_SAVE_FAILED', error);
     setStorageError(true);
