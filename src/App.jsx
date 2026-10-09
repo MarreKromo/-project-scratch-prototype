@@ -1165,6 +1165,45 @@ useEffect(() => {
   Testa profilsäkerhet
 </button>
 
+<button
+  type="button"
+  onClick={async () => {
+    try {
+      const marker = 'cloud-test-' + crypto.randomUUID();
+
+      const { data: saved, error: saveError } =
+        await saveMyRound({
+          courseName: 'Supabase Testbana',
+          playedAt: new Date().toISOString(),
+          testMarker: marker
+        });
+
+      if (saveError) throw saveError;
+
+      const { data: rounds, error: readError } =
+        await getMyRounds();
+
+      if (readError) throw readError;
+
+      const found = rounds.some(
+        round =>
+          round.id === saved.id &&
+          round.round_data?.testMarker === marker
+      );
+
+      alert(
+        found
+          ? 'TEST OK: Rundan sparades och lästes tillbaka!'
+          : 'TEST FEL: Rundan kunde inte hittas.'
+      );
+    } catch (error) {
+      alert('TEST FEL: ' + error.message);
+    }
+  }}
+>
+  Testa molnlagring
+</button>
+
     <AppContent stored={startup.stored} />
   </>
 ) : (
