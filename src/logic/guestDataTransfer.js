@@ -37,3 +37,35 @@ export const getGuestTransferDecision = ({
   };
 };
 
+export const getGuestImportCompletion = ({
+  importVerified,
+  guestBackupPreserved,
+  accountOwnershipVerified
+} = {}) => {
+  if (guestBackupPreserved !== true) {
+    return {
+      allowed: false,
+      reason: 'GUEST_BACKUP_NOT_PRESERVED'
+    };
+  }
+
+  if (accountOwnershipVerified !== true) {
+    return {
+      allowed: false,
+      reason: 'ACCOUNT_OWNERSHIP_NOT_VERIFIED'
+    };
+  }
+
+  if (importVerified !== true) {
+    return {
+      allowed: false,
+      reason: 'IMPORT_NOT_VERIFIED'
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: null
+  };
+};
+
