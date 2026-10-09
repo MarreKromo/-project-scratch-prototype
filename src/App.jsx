@@ -1389,7 +1389,40 @@ const completeOnboarding = async (handicap = null) => {
  {screen==='course'&&<Page><Eyebrow>Runda</Eyebrow><h1>Var spelade du?</h1>{courses.map(c=><Card key={c.id} className="courseCard"><button className="coursePick" onClick={()=>{setCourse(c);setHoleCount(c.holes);goto('setup')}}><div><b>{c.name}</b><small>{c.tee} • {c.holes} hål</small></div><span>→</span></button></Card>)}<Card><b>Saknas banan?</b><p>Skapa en egen bana utan extern tjänst.</p><Secondary onClick={()=>goto('create')}>Skapa bana</Secondary></Card></Page>}
  {screen==='create'&&<Page><button className="back" onClick={()=>goto('course')}><ChevronLeft/> Banor</button><Eyebrow>Egen bana</Eyebrow><h1>Skapa bana</h1><Label>Banans namn</Label><input value={newCourse.name} onChange={e=>setNewCourse({...newCourse,name:e.target.value})} placeholder="t.ex. Hulta Golfklubb"/><Label>Tee</Label><input value={newCourse.tee} onChange={e=>setNewCourse({...newCourse,tee:e.target.value})}/><Label>Runda</Label><div className="grid2"><Choice on={newCourse.holes===18} onClick={()=>setNewCourse({...newCourse,holes:18})}>18 hål</Choice><Choice on={newCourse.holes===9} onClick={()=>setNewCourse({...newCourse,holes:9,pars:newCourse.pars.split(',').slice(0,9).join(',')})}>9 hål</Choice></div><Label>Parföljd</Label><textarea value={newCourse.pars} onChange={e=>setNewCourse({...newCourse,pars:e.target.value})}/><small>Ange parvärden separerade med kommatecken. Rating, slope och avstånd är valfria.</small><Primary onClick={addCourse}>Spara egen bana</Primary></Page>}
  {screen==='setup'&&<Page><Eyebrow>Rundinställningar</Eyebrow><h1>{course.name}</h1><Card><Label>Tee</Label><Choice on>{course.tee}</Choice><Label>Runda</Label><div className="grid2"><Choice on={holeCount===18} onClick={()=>course.holes>=18&&setHoleCount(18)}>18 hål</Choice><Choice on={holeCount===9} onClick={()=>setHoleCount(9)}>9 hål</Choice></div><Label>Läge</Label><div className="grid2"><Choice on={mode==='Standard'} onClick={()=>setMode('Standard')}>Standard</Choice><Choice on={mode==='Practice'} onClick={()=>setMode('Practice')}>Träning</Choice></div></Card><Primary onClick={startRound}>Starta {holeCount}-hålsrunda</Primary></Page>}
- {screen==='hole'&&cur&&<Page><div className="between"><div><Eyebrow>Hål {hole} · Par {cur.par}</Eyebrow><h1>Registrera ditt hål.</h1></div><button className="bare" onClick={()=>goto('home')}>Spara och avsluta</button></div><div className="roundProgress"><b>{round.filter(completeHole).length}/{round.length}</b><span>klara</span></div><Secondary onClick={toggleRoundPause}>
+ {screen==='hole'&&cur&&<Page><div className="between"><div><Eyebrow>Hål {hole} · Par {cur.par}</Eyebrow><h1>Registrera ditt hål.</h1></div><button className="bare" 
+onClick={() => {
+  try {
+    save({
+      identity: stored.identity,
+      onboarding,
+      journey,
+      profile,
+      equipment,
+      training,
+      courses,
+      activeRound: {
+        meta: {
+          ...roundDraft,
+          status: 'in_progress',
+          currentHole: hole
+        },
+        holes: round
+      },
+      rounds,
+      coach: stored.coach,
+      sync: {
+        ...stored.sync,
+        pendingRoundIds: pendingRoundSync
+      }
+    }, userId);
+
+    goto('home');
+  } catch (error) {
+    console.error('ROUND_DRAFT_SAVE_FAILED', error);
+    alert('Rundan kunde inte sparas. Stanna kvar och försök igen.');
+  }
+}}>Spara och avsluta
+</button></div><div className="roundProgress"><b>{round.filter(completeHole).length}/{round.length}</b><span>klara</span></div><Secondary onClick={toggleRoundPause}>
  {roundDraft?.pausedAt?'Fortsätt rundan':'Pausa rundan'}
  </Secondary><div className="holes">{round.map(x=><button key={x.hole} className={`${x.hole===hole?'current':''} ${completeHole(x)?'done':''}`} onClick={()=>setHole(x.hole)}>{x.hole}</button>)}</div><Label>Bruttoscore</Label><Stepper v={cur.score} set={v=>touch('score',v)}/><Label>Puttar</Label><Stepper v={cur.putts} set={v=>touch('putts',v)}/><Label>GIR</Label><div className="grid2"><Choice on={cur.gir===true} onClick={()=>touch('gir',true)}>Ja</Choice><Choice on={cur.gir===false} onClick={()=>touch('gir',false)}>Nej</Choice></div>{cur.par!==3&&<><Label>Utslag</Label><div className="chips">{tees.map(x=><Choice key={x} on={cur.tee===x} onClick={()=>touch('tee',x)}>{{Fairway:'Fairway',Left:'Vänster',Right:'Höger',Long:'Lång',Short:'Kort',Penalty:'Plikt'}[x]||x}</Choice>)}</div></>}<Label>Pliktslag</Label><div className="grid3">{[0,1,2].map(x=><Choice key={x} on={cur.penalty===x&&cur.touched} onClick={()=>touch('penalty',x)}>{x}</Choice>)}</div><div className="actions"><Secondary onClick={demo}>Fyll i demorunda</Secondary><Primary onClick={()=>hole<round.length?setHole(h=>h+1):goto('review')}>{hole===round.length?'Granska rundan':'Nästa hål'}</Primary></div></Page>}
  {screen==='review'&&<Page><Eyebrow>Granska rundan</Eyebrow><h1>{m.n===round.length?'Redo att spara.':'Rundan behöver kompletteras.'}</h1><Card><Stat a="Färdiga" b={`${m.n}/${round.length}`}/><Stat a="Score" b={m.n===round.length?m.score:'—'}/><Stat a="Putts" b={m.n===round.length?m.putts:'—'}/><Stat a="Pliktslag" b={m.n===round.length?m.penalties:'—'}/></Card>{m.n<round.length?<><Notice>Fyll i alla obligatoriska fält innan analysen.</Notice><Secondary onClick={()=>{const i=round.findIndex(x=>!completeHole(x));setHole(i+1);goto('hole')}}>Komplettera saknade hål</Secondary></>:<Primary onClick={saveRound}>Spara rundan</Primary>}</Page>}
