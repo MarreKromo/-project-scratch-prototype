@@ -156,12 +156,14 @@ export async function saveMyRound(round) {
 
   const { data, error } = await supabase
     .from('rounds')
-    .insert({
-      user_id: authData.user.id,
-      course_name: round.courseName ?? round.course ?? null,
-      played_at: round.playedAt ?? round.date ?? null,
+    
+.insert({
+  user_id: authData.user.id,
+  course_name: round.courseName ?? round.course ?? null,
+  played_at: round.playedAt ?? round.date ?? null,
+  round_data: round
+})
 
-    })
     .select('id, user_id, course_name, played_at')
     .single();
 
