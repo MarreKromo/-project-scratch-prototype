@@ -307,9 +307,12 @@ const removeClub = clubId => {
  
  const [roundActive,setRoundActive]=useState(Boolean(stored.activeRound));  
  const [roundDraft,setRoundDraft]=useState(stored.activeRound?.meta||null);
+ const [storageError, setStorageError] = useState(false);
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
- const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]);
- useEffect(()=>save({
+ const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]); 
+ useEffect(()=>{
+  try {
+    save({
   identity:stored.identity,
   onboarding,
   journey,
@@ -321,7 +324,25 @@ const removeClub = clubId => {
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft]);
+
+    });
+    setStorageError(false);
+  } catch (error) {
+    console.error('STORAGE_WRITE_FAILED', error);
+    setStorageError(true);
+  }
+},[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft]);
+ 
+useEffect(() => {
+  if (storageError) {
+    alert(
+      'VARNING: Din golfdata kunde inte sparas. ' +
+      'Stäng inte sidan och rensa inte webbläsarens data. ' +
+      'Kontrollera lagringsutrymmet innan du fortsätter.'
+    );
+  }
+}, [storageError]);
+ 
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
 useEffect(()=>{
   if(roundActive) setRoundDraft(d=>d?{
