@@ -91,6 +91,62 @@ Project Scratch for Supabase integration.
 - Use database constraints to protect ownership.
 - Test cross-account access denial before release.
 
+## Row Level Security (RLS) design
+
+### General policy
+- RLS must be enabled on profiles, rounds,
+  training_sessions and golf_dna.
+- No anonymous access to private account records.
+- The authenticated user identity comes from auth.uid().
+- Frontend filters are not security boundaries.
+- No unrestricted policies for public or authenticated roles.
+
+### Profiles
+- SELECT: id = auth.uid()
+- INSERT: id = auth.uid()
+- UPDATE: USING id = auth.uid()
+  and WITH CHECK id = auth.uid()
+- DELETE: id = auth.uid(), with account deletion
+  handled by a controlled workflow.
+
+### Rounds
+- SELECT: user_id = auth.uid()
+- INSERT: WITH CHECK user_id = auth.uid()
+- UPDATE: USING user_id = auth.uid()
+  and WITH CHECK user_id = auth.uid()
+- DELETE: USING user_id = auth.uid()
+
+### Training sessions
+- SELECT: user_id = auth.uid()
+- INSERT: WITH CHECK user_id = auth.uid()
+- UPDATE: USING user_id = auth.uid()
+  and WITH CHECK user_id = auth.uid()
+- DELETE: USING user_id = auth.uid()
+
+### Golf DNA
+- SELECT: user_id = auth.uid()
+- INSERT: WITH CHECK user_id = auth.uid()
+- UPDATE: USING user_id = auth.uid()
+  and WITH CHECK user_id = auth.uid()
+- DELETE: USING user_id = auth.uid()
+
+### Required database constraints
+- profiles.id references auth.users(id).
+- All private user_id fields reference profiles(id).
+- Private owner IDs must be NOT NULL.
+- golf_dna.user_id must be UNIQUE.
+- Foreign keys and deletion behavior require review
+  before production migration.
+
+### Security validation
+- User A cannot read User B's records.
+- User A cannot insert records owned by User B.
+- User A cannot change ownership to User B.
+- User A cannot update or delete User B's records.
+- Unauthenticated requests cannot access private data.
+- RLS must be tested against the actual database
+  during AF-06A.4.
+
 ## Acceptance criteria
 - Ownership rules documented for every table.
 - RLS policies designed and reviewed.
