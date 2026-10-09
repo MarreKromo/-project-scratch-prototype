@@ -452,6 +452,27 @@ const removeClub = clubId => {
     : []
 );
 
+const retryPendingRounds = async () => {
+  for (const id of pendingRoundSync) {
+    const savedRound = rounds.find(r => r.id === id);
+    if (!savedRound) continue;
+
+    try {
+      const { error } = await saveMyRound(savedRound);
+      if (error) {
+        console.error('ROUND_SYNC_RETRY_FAILED', error);
+        continue;
+      }
+
+      setPendingRoundSync(current =>
+        current.filter(pendingId => pendingId !== id)
+      );
+    } catch (error) {
+      console.error('ROUND_SYNC_RETRY_FAILED', error);
+    }
+  }
+};
+
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
  const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]); 
  useEffect(()=>{
