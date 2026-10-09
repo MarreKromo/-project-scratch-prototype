@@ -120,3 +120,32 @@ test('9 och 18 hål ska ha separata snitt', () => {
   assert.equal(result.bestScore9, 39);
   assert.equal(result.bestScore18, 78);
 });
+
+test('ofullständiga rundor får inte bli personbästa', () => {
+  const rounds = [
+    {
+      roundType: 9,
+      status: 'complete',
+      eligibility: { progression: true },
+      metrics: { n: 9, score: 39 }
+    },
+    {
+      roundType: 9,
+      status: 'complete',
+      eligibility: { progression: true },
+      metrics: { n: 7, score: 28 }
+    },
+    {
+      roundType: 18,
+      status: 'complete',
+      eligibility: { progression: true },
+      metrics: { n: 18, score: 78 }
+    }
+  ];
+
+  const result = historyMetrics(rounds);
+
+  assert.equal(result.bestScore9, 39);
+  assert.equal(result.scoreAvg9, 39);
+  assert.equal(result.bestScore18, 78);
+});
