@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {
   canAccessAccountData,
   getAccountSwitchDecision,
-  getSignOutPrivacyDecision
+  getSignOutPrivacyDecision,
+  getAccountSwitchCompletion
 } from './accountIsolation.js';
 
 test('Rätt konto får åtkomst', () => {
@@ -120,6 +121,53 @@ test('Sessionen måste vara avslutad', () => {
       unsyncedDataProtected: true
     }).reason,
     'SESSION_STILL_ACTIVE'
+  );
+});
+
+test('Säkert kontobyte godkänns', () => {
+  assert.deepEqual(
+    getAccountSwitchCompletion({
+      previousDataHidden: true,
+      nextAccountVerified: true,
+      unsyncedDataProtected: true
+    }),
+    {
+      allowed: true,
+      reason: null
+    }
+  );
+});
+
+test('Tidigare kontots data måste döljas', () => {
+  assert.equal(
+    getAccountSwitchCompletion({
+      previousDataHidden: false,
+      nextAccountVerified: true,
+      unsyncedDataProtected: true
+    }).reason,
+    'PREVIOUS_DATA_STILL_VISIBLE'
+  );
+});
+
+test('Nästa konto måste verifieras', () => {
+  assert.equal(
+    getAccountSwitchCompletion({
+      previousDataHidden: true,
+      nextAccountVerified: false,
+      unsyncedDataProtected: true
+    }).reason,
+    'NEXT_ACCOUNT_NOT_VERIFIED'
+  );
+});
+
+test('Osynkroniserad data skyddas vid kontobyte', () => {
+  assert.equal(
+    getAccountSwitchCompletion({
+      previousDataHidden: true,
+      nextAccountVerified: true,
+      unsyncedDataProtected: false
+    }).reason,
+    'UNSYNCED_DATA_NOT_PROTECTED'
   );
 });
 
