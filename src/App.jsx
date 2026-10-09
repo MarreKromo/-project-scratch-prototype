@@ -453,6 +453,10 @@ const removeClub = clubId => {
 );
 const roundSyncRunning = useRef(false);
 const retryPendingRounds = async () => {
+  if (roundSyncRunning.current) return;
+  roundSyncRunning.current = true;
+
+  try {
   for (const id of pendingRoundSync) {
     const savedRound = rounds.find(r => r.id === id);
     if (!savedRound) continue;
@@ -467,9 +471,12 @@ const retryPendingRounds = async () => {
       setPendingRoundSync(current =>
         current.filter(pendingId => pendingId !== id)
       );
-    } catch (error) {
+        } catch (error) {
       console.error('ROUND_SYNC_RETRY_FAILED', error);
     }
+  }
+  } finally {
+    roundSyncRunning.current = false;
   }
 };
 
