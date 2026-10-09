@@ -1,6 +1,13 @@
 const K = 'project-scratch-v1';
-const LEGACY_DEMO_KEY = 'project-scratch-v04';
+export const getAccountStorageKey = (userId) => {
+  if (typeof userId !== 'string' || !userId.trim()) {
+    throw new Error('ACCOUNT_ID_REQUIRED');
+  }
 
+  return `project-scratch-v1-user-${userId}`;
+};
+
+const LEGACY_DEMO_KEY = 'project-scratch-v04';
 export const createId = prefix => {
   if (globalThis.crypto?.randomUUID) {
     return `${prefix}-${crypto.randomUUID()}`;
