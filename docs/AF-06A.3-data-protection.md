@@ -1,0 +1,313 @@
+# AF-06A.3 – Data Protection & Database Design
+
+Status: Draft
+Implementation: Design only
+
+## Goal
+Protect each golfer's private data and prepare
+Project Scratch for Supabase integration.
+
+## Core principles
+1. Every account owns its private data.
+2. Users must never access another user's private data.
+3. Guest data remains local until explicitly imported.
+4. No silent deletion, merging or overwriting.
+5. Database access must enforce ownership, not just the UI.
+
+## Planned data entities
+
+### Profiles
+- id
+- display_name
+- created_at
+
+### Rounds
+- id
+- user_id
+- course_name
+- played_at
+- round_data
+- created_at
+
+### Training sessions
+- id
+- user_id
+- activity_type
+- duration_minutes
+- performed_at
+- created_at
+
+### Golf DNA
+- id
+- user_id
+- profile_data
+- updated_at
+
+## Security requirements
+- Supabase Auth manages authenticated identities.
+- Row Level Security (RLS) protects private tables.
+- Every private record has a verified owner.
+- No service-role keys in frontend code.
+- Users can export and request deletion of their data.
+- Unsynced guest data must not be silently deleted.
+
+## Data ownership rules
+
+### Identity
+- Supabase Auth user ID is the canonical account identity.
+- Profiles.id must match the authenticated user's ID.
+- Rounds.user_id references Profiles.id.
+- Training sessions.user_id references Profiles.id.
+- Golf DNA.user_id references Profiles.id.
+- Client-supplied owner IDs must never grant access.
+
+### Private data access
+- SELECT: Only the authenticated owner.
+- INSERT: Only when the owner ID matches auth.uid().
+- UPDATE: Only the owner; ownership cannot be transferred.
+- DELETE: Only the owner, subject to deletion safeguards.
+- Unauthenticated users have no access to account data.
+
+### Profiles
+- Each account has at most one profile.
+- Users may access and edit only their own profile.
+- Public profile visibility requires a separate future design.
+
+### Rounds and training
+- Every record must belong to exactly one account.
+- Records must not be reassigned between accounts.
+- Guest records remain separate until verified import.
+
+### Golf DNA
+- Golf DNA is private by default.
+- Each account has at most one Golf DNA profile.
+- Badges and rewards must not expose private statistics.
+- Friend visibility and leaderboards require separate
+  consent and access rules before implementation.
+
+### Database enforcement
+- Enable RLS on every private table.
+- Apply ownership checks to all database operations.
+- Use database constraints to protect ownership.
+- Test cross-account access denial before release.
+
+## Row Level Security (RLS) design
+
+### General policy
+- RLS must be enabled on profiles, rounds,
+  training_sessions and golf_dna.
+- No anonymous access to private account records.
+- The authenticated user identity comes from auth.uid().
+- Frontend filters are not security boundaries.
+- No unrestricted policies for public or authenticated roles.
+
+### Profiles
+- SELECT: id = auth.uid()
+- INSERT: id = auth.uid()
+- UPDATE: USING id = auth.uid()
+  and WITH CHECK id = auth.uid()
+- DELETE: id = auth.uid(), with account deletion
+  handled by a controlled workflow.
+
+### Rounds
+- SELECT: user_id = auth.uid()
+- INSERT: WITH CHECK user_id = auth.uid()
+- UPDATE: USING user_id = auth.uid()
+  and WITH CHECK user_id = auth.uid()
+- DELETE: USING user_id = auth.uid()
+
+### Training sessions
+- SELECT: user_id = auth.uid()
+- INSERT: WITH CHECK user_id = auth.uid()
+- UPDATE: USING user_id = auth.uid()
+  and WITH CHECK user_id = auth.uid()
+- DELETE: USING user_id = auth.uid()
+
+### Golf DNA
+- SELECT: user_id = auth.uid()
+- INSERT: WITH CHECK user_id = auth.uid()
+- UPDATE: USING user_id = auth.uid()
+  and WITH CHECK user_id = auth.uid()
+- DELETE: USING user_id = auth.uid()
+
+### Required database constraints
+- profiles.id references auth.users(id).
+- All private user_id fields reference profiles(id).
+- Private owner IDs must be NOT NULL.
+- golf_dna.user_id must be UNIQUE.
+- Foreign keys and deletion behavior require review
+  before production migration.
+
+### Security validation
+- User A cannot read User B's records.
+- User A cannot insert records owned by User B.
+- User A cannot change ownership to User B.
+- User A cannot update or delete User B's records.
+- Unauthenticated requests cannot access private data.
+- RLS must be tested against the actual database
+  during AF-06A.4.
+
+## Guest data migration and backup strategy
+
+### Before migration
+- Identify the authenticated destination account.
+- Verify that the guest dataset is readable.
+- Create and preserve a local guest backup.
+- Check whether the destination account has data.
+- Show a summary of what will be imported.
+- Require explicit user confirmation.
+
+### Migration process
+- Never overwrite existing account records.
+- Assign imported records to the verified account.
+- Use stable source IDs to detect duplicate imports.
+- Record migration progress and results.
+- Import related records without losing relationships.
+- Treat interrupted migrations as recoverable.
+- Never trust a client-supplied owner ID alone.
+
+### After migration
+- Verify imported record counts and relationships.
+- Verify ownership of all imported records.
+- Preserve the guest backup after import.
+- Mark migration complete only after verification.
+- Do not automatically delete local guest history.
+
+### Failure handling
+- Failed imports must not erase guest data.
+- Retrying must not create duplicate records.
+- Partial imports must be detected and recoverable.
+- Existing account data must remain unchanged.
+- Display a clear failure message to the user.
+
+### Required migration tests
+- Import into an empty account.
+- Import into an account with existing history.
+- Interrupted import followed by retry.
+- Duplicate import attempt.
+- Invalid destination account.
+- Missing or corrupted guest data.
+- Verification failure after import.
+- Account switch during an unfinished import.
+
+## Data export and account deletion
+
+### Data export
+- Authenticated users can request their own data.
+- Export includes profile, rounds, training and Golf DNA.
+- Preserve record IDs, dates and relationships.
+- Use a documented machine-readable format such as JSON.
+- Verify account ownership before preparing the export.
+- Never include another user's private records.
+- Do not include passwords, tokens or service credentials.
+- Failed exports must not modify stored data.
+
+### Account deletion
+- Require a valid authenticated session.
+- Explain what will be permanently deleted.
+- Require explicit confirmation before deletion.
+- Warn about unsynced local and guest data.
+- Prevent accidental deletion of another account.
+- Delete or anonymize associated private data according
+  to the documented retention and legal requirements.
+- Remove the authenticated account through a controlled
+  server-side process.
+- Revoke active sessions and prevent further access.
+- Show completion only after deletion is verified.
+- Handle partial failures without claiming success.
+
+### Recovery and safeguards
+- Offer data export before account deletion.
+- Do not silently delete guest backups.
+- Never store recovery credentials in localStorage.
+- Define retention periods and backup deletion behavior
+  before production launch.
+- Document any legally required retention exceptions.
+
+### Required tests
+- Export all records belonging to User A.
+- Verify that User B's records are excluded.
+- Reject unauthenticated export requests.
+- Reject deletion without explicit confirmation.
+- Prevent cross-account deletion.
+- Verify removal of account-owned private records.
+- Verify authenticated access is revoked after deletion.
+- Handle partial deletion and export failures.
+
+## Security test plan
+
+### Test identities
+- User A: authenticated account with private records.
+- User B: separate authenticated account.
+- Guest: local-only identity without account access.
+- Anonymous: unauthenticated database request.
+
+### RLS test matrix
+- User A can read, create and edit own records.
+- User A cannot read User B's records.
+- User A cannot modify or delete User B's records.
+- User A cannot create records owned by User B.
+- User A cannot change record ownership.
+- Anonymous requests cannot access private records.
+- Apply these tests to every private table.
+
+### Guest migration tests
+- Guest import requires explicit confirmation.
+- Existing account records are preserved.
+- Repeated imports do not create duplicates.
+- Interrupted imports can safely resume.
+- Guest backups survive failed imports.
+- Imported records have verified account ownership.
+
+### Export and deletion tests
+- Exports include only the authenticated user's data.
+- Exports preserve dates and record relationships.
+- Deletion requires authentication and confirmation.
+- Account deletion removes or anonymizes applicable data.
+- Deleted accounts cannot access private records.
+- Failed operations never report false success.
+
+### Test execution
+- AF-06A.3 defines the required test cases.
+- AF-06A.4 implements database and integration tests.
+- Run tests using separate authenticated identities.
+- Verify RLS directly against Supabase.
+- Record failures and fixes before production release.
+- Do not claim security compliance from unit tests alone.
+
+## Existing local data migration
+
+### Current implementation
+- The prototype uses localStorage key project-scratch-v1.
+- Existing state includes identity, rounds, courses,
+  training, equipment, profile and other app data.
+- Account-specific storage is not yet integrated.
+
+### Migration requirements
+- Never overwrite project-scratch-v1 during migration.
+- Preserve a verified backup of existing local state.
+- Validate existing records before importing them.
+- Preserve round history and related course data.
+- Include all existing app data in the migration review.
+- Do not assume all records are ready for cloud storage.
+- Require explicit confirmation before account import.
+- Verify imported data before marking migration complete.
+- Support safe retry after interrupted migration.
+
+### AF-06A.4 implementation gate
+- Inventory the full existing local data schema.
+- Define versioned database migrations.
+- Test migration with realistic existing app data.
+- Confirm no loss of rounds, training or profile data.
+- Keep rollback and recovery available.
+
+## Acceptance criteria
+- Ownership rules documented for every table.
+- RLS policies designed and reviewed.
+- Guest migration and backup strategy documented.
+- Export and deletion flows documented.
+- Security tests specified before implementation.
+
+## Scope
+AF-06A.3: Database and security design.
+AF-06A.4: Supabase implementation.
