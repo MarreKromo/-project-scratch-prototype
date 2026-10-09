@@ -159,6 +159,47 @@ useEffect(() => {
   };
 }, []);
 
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadCloudOnboarding() {
+    const { data, error } = await getMyProfile();
+
+    if (cancelled) return;
+
+    if (error) {
+      console.error('ONBOARDING_LOAD_FAILED', error);
+      return;
+    }
+
+    const saved = data?.onboarding_data;
+
+    if (saved?.onboarding?.status !== 'complete') {
+      return;
+    }
+
+    setOnboarding(saved.onboarding);
+
+    if (saved.journey) {
+      setJourney(saved.journey);
+    }
+
+    if (typeof saved.handicap === 'number') {
+      setProfile(current =>
+        updateHandicap(current, saved.handicap)
+      );
+    }
+
+    setScreen('home');
+  }
+
+  loadCloudOnboarding();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
  const [equipment,setEquipment]=useState(stored.equipment); 
  const [training,setTraining]=useState(stored.training);
  
