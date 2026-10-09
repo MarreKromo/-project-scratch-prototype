@@ -57,3 +57,27 @@ export async function signOut() {
   return { error };
 }
 
+export async function getMyProfile() {
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser();
+
+  if (authError) {
+    return { data: null, error: authError };
+  }
+
+  if (!authData.user) {
+    return {
+      data: null,
+      error: new Error('Ingen användare är inloggad.')
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, created_at')
+    .eq('id', authData.user.id)
+    .single();
+
+  return { data, error };
+}
+
