@@ -636,6 +636,13 @@ try {
       'Försök inte spara samma runda igen.'
     );
   }
+ 
+else {
+  setPendingRoundSync(current =>
+    current.filter(id => id !== saved.id)
+  );
+}
+ 
 } catch (error) {
   console.error('CLOUD_ROUND_SAVE_FAILED', error);
   alert(
