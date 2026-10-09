@@ -56,3 +56,36 @@ export const getAccountSwitchDecision = (
   };
 };
 
+export const getSignOutPrivacyDecision = ({
+  sessionEnded,
+  privateDataHidden,
+  unsyncedDataProtected
+} = {}) => {
+  if (unsyncedDataProtected !== true) {
+    return {
+      allowed: false,
+      reason: 'UNSYNCED_DATA_NOT_PROTECTED'
+    };
+  }
+
+  if (privateDataHidden !== true) {
+    return {
+      allowed: false,
+      reason: 'PRIVATE_DATA_STILL_VISIBLE'
+    };
+  }
+
+  if (sessionEnded !== true) {
+    return {
+      allowed: false,
+      reason: 'SESSION_STILL_ACTIVE'
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: null
+  };
+};
+
+
