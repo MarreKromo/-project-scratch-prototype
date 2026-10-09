@@ -35,3 +35,35 @@ export const getAccountTransition = state => {
     reason: null
   };
 };
+
+export const getGuestDataDecision = (
+  state,
+  choice
+) => {
+  if (!hasLocalGuestData(state)) {
+    return {
+      action: 'CONTINUE',
+      requiresConfirmation: false
+    };
+  }
+
+  if (choice === 'KEEP_SEPARATE') {
+    return {
+      action: 'PRESERVE_GUEST_DATA',
+      requiresConfirmation: false
+    };
+  }
+
+  if (choice === 'REQUEST_IMPORT') {
+    return {
+      action: 'PREPARE_IMPORT',
+      requiresConfirmation: true
+    };
+  }
+
+  return {
+    action: 'WAIT_FOR_USER',
+    requiresConfirmation: true
+  };
+};
+
