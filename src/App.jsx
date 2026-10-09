@@ -1325,8 +1325,8 @@ useEffect(() => {
     listener.subscription.unsubscribe();
   };
 }, []);
-
-  if (startup.storageError) {
+  
+    if (startup.storageError || accountStartup?.storageError) {
     return <StorageErrorScreen />;
   }
 
@@ -1336,8 +1336,7 @@ useEffect(() => {
       type="button"
       onClick={async () => {
         const { error } = await signOut();    
-        if (startup.storageError || accountStartup?.storageError) {
-
+        
       }}
     >
       Logga ut
