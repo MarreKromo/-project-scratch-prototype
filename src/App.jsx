@@ -1414,7 +1414,13 @@ useEffect(() => {
   Testa molnlagring
 </button>
 
-    <AppContent stored={startup.stored} />
+    
+<AppContent
+  key={session.user.id}
+  stored={startup.stored}
+  userId={session.user.id}
+/>
+
   </>
 ) : (
   <AuthScreen onAuthenticated={setSession} />
