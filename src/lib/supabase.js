@@ -221,3 +221,30 @@ export async function getMyCourses() {
   return { data, error };
 }
 
+export async function saveMyOnboarding(onboardingData) {
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser();
+
+  if (authError) {
+    return { data: null, error: authError };
+  }
+
+  if (!authData.user) {
+    return {
+      data: null,
+      error: new Error('Ingen användare är inloggad.')
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      onboarding_data: onboardingData
+    })
+    .eq('id', authData.user.id)
+    .select('id, onboarding_data')
+    .single();
+
+  return { data, error };
+}
+
