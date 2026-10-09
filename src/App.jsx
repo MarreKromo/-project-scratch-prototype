@@ -405,7 +405,7 @@ useEffect(()=>{
 };
  
  const demo=()=>setRound(r=>r.map((x,i)=>({...x,score:[5,4,3,6,4,5,3,5,4,5,4,3,6,4,4,4,5,4][i]??x.par,putts:[2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2][i]??2,gir:i%3===0,tee:x.par===3?null:(i===4||i===12?'Right':i===7?'Penalty':'Fairway'),penalty:i===7||i===12?1:0,touched:true})));
- const saveRound=()=>{
+ const saveRound=async ()=>{
    const mm=metrics(round);
      const completedAt=new Date();
 
