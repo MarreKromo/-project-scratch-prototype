@@ -3,8 +3,9 @@ name: Statistics tests
 
 on:
   push:
-    branches:
-      - af-07-statistics-engine-tests
+    branches:      
+      - main
+
   workflow_dispatch:
 
 jobs:
