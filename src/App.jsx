@@ -1113,9 +1113,21 @@ useEffect(() => {
     return <StorageErrorScreen />;
   }
 
-  
-return session
-  ? <AppContent stored={startup.stored} />
-  : <AuthScreen onAuthenticated={setSession} />;
+  return session ? (
+  <>
+    <button
+      type="button"
+      onClick={async () => {
+        const { error } = await signOut();
+        if (error) alert(error.message);
+      }}
+    >
+      Logga ut
+    </button>
+    <AppContent stored={startup.stored} />
+  </>
+) : (
+  <AuthScreen onAuthenticated={setSession} />
+);
 
 }
