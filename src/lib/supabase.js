@@ -9,3 +9,29 @@ export const supabase = createClient(
   supabaseAnonKey
 );
 
+export async function testSupabaseConnection() {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Supabase API svarar!'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message
+    };
+  }
+}
+
