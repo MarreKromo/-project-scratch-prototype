@@ -641,7 +641,32 @@ const completeOnboarding = async (handicap = null) => {
 </button>
  {screen==='welcome'&&<Page className="welcome"><Eyebrow>Bättre för varje runda</Eyebrow><h1>Gör varje runda till ett steg framåt.</h1><p>Förstå vad som påverkade din score, välj ett fokus och ta med dig ett tydligt mål till nästa runda.</p><Primary onClick={()=>{setOnboarding({status:'journey',completedAt:null});goto('journey')}}>Starta din resa</Primary></Page>}
  {screen==='journey'&&<Page><Eyebrow>Din resa</Eyebrow><h1>Vad siktar du på?</h1><p>Välj nästa nivå du vill nå.</p>{journeys.map(x=><Choice key={x} on={journey===x} onClick={()=>setJourney(x)}>{x}</Choice>)}<Primary onClick={()=>{if(!journey)return;setOnboarding({status:'handicap',completedAt:null});goto('handicap')}}>Fortsätt</Primary></Page>}
- {screen==='handicap'&&<Page><Eyebrow>Din profil</Eyebrow><h1>Vad har du i handicap?</h1><p>Ange ditt nuvarande handicap. Värdet används för din utvecklingsprofil och ändrar inte ditt officiella handicap.</p><Label>Nuvarande handicap</Label><input type="number" inputMode="decimal" step="0.1" value={handicapInput} onChange={e=>setHandicapInput(e.target.value)} placeholder="t.ex. 18.4"/><Primary onClick={()=>{const value=Number(handicapInput);if(!handicapInput.trim()||!Number.isFinite(value))return;setProfile(p=>updateHandicap(p,value));setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Fortsätt</Primary><TextButton onClick={()=>{setOnboarding({status:'complete',completedAt:new Date().toISOString()});goto('home')}}>Jag vet inte mitt handicap</TextButton></Page>}
+ 
+{screen==='handicap'&&<Page>
+  <Eyebrow>Din profil</Eyebrow>
+  <h1>Vad har du i handicap?</h1>
+  <p>Ange ditt nuvarande handicap. Värdet används för din utvecklingsprofil och ändrar inte ditt officiella handicap.</p>
+  <Label>Nuvarande handicap</Label>
+  <input
+    type="number"
+    inputMode="decimal"
+    step="0.1"
+    value={handicapInput}
+    onChange={e=>setHandicapInput(e.target.value)}
+    placeholder="t.ex. 18.4"
+  />
+  <Primary onClick={()=>{
+    const value=Number(handicapInput);
+    if(!handicapInput.trim()||!Number.isFinite(value))return;
+    completeOnboarding(value);
+  }}>
+    Fortsätt
+  </Primary>
+  <TextButton onClick={()=>completeOnboarding()}>
+    Jag vet inte mitt handicap
+  </TextButton>
+</Page>}
+
  {screen==='home'&&<Page><div className="homeHello"><div><Eyebrow>Din utveckling</Eyebrow><h1>Gör nästa runda bättre.</h1></div></div><HeroCard journey={journey} currentHandicap={profile?.selfReportedHandicap} lastScore={lm?.score}/><div className="sectionTitle"><span>ETT FOKUS</span><small>{a.confidence} tillförlitlighet</small></div><Card className="focusCard"><div className="focusIcon"><Target/></div><h2>{a.label}</h2><p>{a.reason}</p><TextButton onClick={()=>goto('evidence')}>Varför detta fokus →</TextButton></Card><div className="dashGrid"><Card className="mini"><small>NÄSTA RUNDA</small><strong>{a.target}</strong></Card><Card className="mini"><small>SENASTE</small><strong>{lm?`${lm.score} · ${lastRound.course}`:'Ingen runda ännu'}</strong></Card></div><Primary onClick={()=>goto('course')}>Starta en runda</Primary><Secondary onClick={()=>goto('training')}>Träning</Secondary><Secondary onClick={()=>goto('bag')}>Min bag</Secondary></Page>}
  {screen==='training'&&<Page>
   <button className="back" onClick={()=>goto('home')}>
