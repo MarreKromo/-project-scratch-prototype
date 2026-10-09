@@ -97,3 +97,21 @@ test('Skrivfel bevarar befintlig golfhistorik', () => {
   assert.equal(storage.value, original);
   assert.equal(storage.writes, 0);
 });
+
+test('Ogiltig rundhistorik får inte läsas in', () => {
+  const original = JSON.stringify({
+    schemaVersion: 1,
+    identity: { id: 'guest-test', type: 'guest' },
+    rounds: null
+  });
+
+  const storage = mockStorage(original);
+
+  assert.throws(
+    () => load(),
+    { message: 'STORAGE_CORRUPTED' }
+  );
+
+  assert.equal(storage.value, original);
+  assert.equal(storage.writes, 0);
+});
