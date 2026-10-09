@@ -81,3 +81,37 @@ export async function getMyProfile() {
   return { data, error };
 }
 
+export async function testProfileIsolation() {
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser();
+
+  if (authError) {
+    return { success: false, message: authError.message };
+  }
+
+  if (!authData.user) {
+    return { success: false, message: 'Inte inloggad.' };
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .neq('id', authData.user.id);
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  if (data.length > 0) {
+    return {
+      success: false,
+      message: 'SÄKERHETSFEL: Andra profiler är synliga!'
+    };
+  }
+
+  return {
+    success: true,
+    message: 'Inga andra profiler är synliga.'
+  };
+}
+
