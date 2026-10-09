@@ -76,3 +76,24 @@ test('Normal sparning fungerar', () => {
   );
   assert.equal(storage.writes, 1);
 });
+
+test('Skrivfel bevarar befintlig golfhistorik', () => {
+  const original = JSON.stringify({
+    schemaVersion: 1,
+    rounds: [{ id: 'important-round', score: 78 }]
+  });
+
+  const storage = mockStorage(original);
+
+  globalThis.localStorage.setItem = () => {
+    throw new Error('Simulerat skrivfel');
+  };
+
+  assert.throws(
+    () => save({ rounds: [] }),
+    { message: 'Simulerat skrivfel' }
+  );
+
+  assert.equal(storage.value, original);
+  assert.equal(storage.writes, 0);
+});
