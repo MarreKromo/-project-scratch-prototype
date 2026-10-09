@@ -115,3 +115,27 @@ export async function testProfileIsolation() {
   };
 }
 
+export async function getMyRounds() {
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser();
+
+  if (authError) {
+    return { data: null, error: authError };
+  }
+
+  if (!authData.user) {
+    return {
+      data: null,
+      error: new Error('Ingen användare är inloggad.')
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('rounds')
+    .select('id, course_name, played_at, round_data')
+    .eq('user_id', authData.user.id)
+    .order('created_at', { ascending: false });
+
+  return { data, error };
+}
+
