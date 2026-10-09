@@ -1300,13 +1300,15 @@ const completeOnboarding = async (handicap = null) => {
  </main>{!['welcome','journey','handicap'].includes(screen)&&<BottomNav screen={screen} goto={goto}/>}</div>
 }
 
-export default function App() {
-const [startup] = useState(readStartupData);
-const accountStartup = session
-  ? readStartupData(session.user.id)
-  : null;
 
-const [session, setSession] = useState(null);
+export default function App() {
+  const [startup] = useState(readStartupData);
+  const [session, setSession] = useState(null);
+
+  const accountStartup = session
+    ? readStartupData(session.user.id)
+    : null;
+
 
 useEffect(() => {
   supabase.auth.getSession().then(({ data, error }) => {
