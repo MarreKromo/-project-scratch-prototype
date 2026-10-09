@@ -149,3 +149,26 @@ test('ofullständiga rundor får inte bli personbästa', () => {
   assert.equal(result.scoreAvg9, 39);
   assert.equal(result.bestScore18, 78);
 });
+
+test('träningsrundor påverkar inte progression', () => {
+  const rounds = [
+    {
+      roundType: 9,
+      status: 'complete',
+      eligibility: { progression: true },
+      metrics: { n: 9, score: 39 }
+    },
+    {
+      roundType: 9,
+      status: 'complete',
+      eligibility: { progression: false },
+      metrics: { n: 9, score: 25 }
+    }
+  ];
+
+  const result = historyMetrics(rounds);
+
+  assert.equal(result.rounds, 1);
+  assert.equal(result.scoreAvg9, 39);
+  assert.equal(result.bestScore9, 39);
+});
