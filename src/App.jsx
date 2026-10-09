@@ -1124,6 +1124,30 @@ useEffect(() => {
     >
       Logga ut
     </button>
+    
+<button
+  type="button"
+  onClick={async () => {
+    try {
+      const { data, error } = await getMyProfile();
+
+      if (error) {
+        alert('Profiltest misslyckades: ' + error.message);
+        return;
+      }
+
+      alert(
+        'Profil hämtad från Supabase!\n' +
+        'Användar-ID: ' + data.id
+      );
+    } catch (error) {
+      alert('Profiltest misslyckades: ' + error.message);
+    }
+  }}
+>
+  Testa min profil
+</button>
+
     <AppContent stored={startup.stored} />
   </>
 ) : (
