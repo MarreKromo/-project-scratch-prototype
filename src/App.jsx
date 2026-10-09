@@ -48,6 +48,35 @@ const formatRoundPlayingTime=round=>{
   return `${Math.round(minutes)} min`;
 };
 
+const readStartupData = () => {
+  try {
+    return {
+      stored: normalize(load()),
+      storageError: null
+    };
+  } catch (error) {
+    return {
+      stored: null,
+      storageError: error
+    };
+  }
+};
+
+const StorageErrorScreen = () => (
+  <main style={{ padding: 24, maxWidth: 480, margin: '48px auto' }}>
+    <h1>Din golfdata kunde inte läsas</h1>
+    <p>
+      Vi har stoppat appens uppstart för att skydda
+      din sparade historik.
+    </p>
+    <p>
+      Rensa inte webbläsarens lagring och installera
+      inte om appen. Ingen automatisk återställning
+      har genomförts.
+    </p>
+  </main>
+);
+
 export default function App(){
  const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
   stored.activeRound?.meta?.status==='in_progress'
