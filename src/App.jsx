@@ -3,6 +3,7 @@ import {WifiOff,Sparkles,Target,Activity,ChevronLeft} from 'lucide-react';
 import {journeys,defaultCourse,makeRound} from './data/prototypeData.js';
 import {metrics,METRICS_VERSION,completeHole,historyMetrics,windowMetrics} from './logic/roundMetrics.js';
 import {coach as buildCoach} from './logic/coachEngine.js';
+import { persistCompletedRound } from './logic/roundSave.js';
 import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub,createTrainingActivity,updateTrainingActivity,voidTrainingActivity} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
@@ -77,8 +78,9 @@ const StorageErrorScreen = () => (
   </main>
 );
 
-export default function App(){
- const stored=normalize(load()); const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
+function AppContent({ stored }) {
+  const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
+
   stored.activeRound?.meta?.status==='in_progress'
     ? 'hole'
     : stored.onboarding?.status==='complete'
@@ -306,9 +308,12 @@ const removeClub = clubId => {
  
  const [roundActive,setRoundActive]=useState(Boolean(stored.activeRound));  
  const [roundDraft,setRoundDraft]=useState(stored.activeRound?.meta||null);
+ const [storageError, setStorageError] = useState(false);
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
- const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]);
- useEffect(()=>save({
+ const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]); 
+ useEffect(()=>{
+  try {
+    save({
   identity:stored.identity,
   onboarding,
   journey,
@@ -320,7 +325,25 @@ const removeClub = clubId => {
   rounds,
   coach:stored.coach,
   sync:stored.sync
-}),[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft]);
+
+    });
+    setStorageError(false);
+  } catch (error) {
+    console.error('STORAGE_WRITE_FAILED', error);
+    setStorageError(true);
+  }
+},[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft]);
+ 
+useEffect(() => {
+  if (storageError) {
+    alert(
+      'VARNING: Din golfdata kunde inte sparas. ' +
+      'Stäng inte sidan och rensa inte webbläsarens data. ' +
+      'Kontrollera lagringsutrymmet innan du fortsätter.'
+    );
+  }
+}, [storageError]);
+ 
  const cur=round[hole-1],touch=(k,v)=>setRound(r=>r.map((x,i)=>i===hole-1?{...x,[k]:v,touched:true}:x));
 useEffect(()=>{
   if(roundActive) setRoundDraft(d=>d?{
@@ -416,27 +439,38 @@ useEffect(()=>{
     metrics:mm,
     analysis:mode==='Standard'?buildCoach(mm):null
   };
+  
 
-  setRounds(prev=>{
-    const next=[...prev,saved];
+  try {
+    const next = persistCompletedRound(
+      save,
+      {
+        identity: stored.identity,
+        onboarding,
+        journey,
+        profile,
+        equipment,
+        training,
+        courses,
+        activeRound: roundActive
+          ? { meta: roundDraft, holes: round }
+          : null,
+        rounds,
+        coach: stored.coach,
+        sync: stored.sync
+      },
+      saved
+    );
 
-   save({
-     identity:stored.identity,
-     onboarding,
-     journey,
-     profile,
-     equipment,
-     training,
-     courses,
-     activeRound:null,
-     lastRound:saved,
-     rounds:next,
-     coach:stored.coach,
-     sync:stored.sync
-   });
+    setRounds(next);
+    setStorageError(false);
 
-    return next;
-  });
+  } catch (error) {
+    console.error('ROUND_SAVE_FAILED', error);
+    setStorageError(true);
+    alert('Rundan kunde inte sparas. Försök igen. Lämna inte sidan.');
+    return;
+  }
 
 setSelectedRound(saved);
 setRound(makeRound(course,holeCount));
@@ -1043,4 +1077,14 @@ goto('saved');
   {formatRoundPlayingTime(r)}
 </small></div><strong>{r.metrics.score}</strong></Card>)}</>}<Notice>Up & Down och Sand Save visas först när rundregistreringen kan samla in rätt underlag. Saknade värden visas inte som 0 %.</Notice></Page>}
  </main>{!['welcome','journey','handicap'].includes(screen)&&<BottomNav screen={screen} goto={goto}/>}</div>
+}
+
+export default function App() {
+  const [startup] = useState(readStartupData);
+
+  if (startup.storageError) {
+    return <StorageErrorScreen />;
+  }
+
+  return <AppContent stored={startup.stored} />;
 }
