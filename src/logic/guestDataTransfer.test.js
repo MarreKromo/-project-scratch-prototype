@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getGuestTransferDecision } from './guestDataTransfer.js';
+
+import {
+  getGuestTransferDecision,
+  getGuestImportCompletion
+} from './guestDataTransfer.js';
+
 
 const valid = {
   guestId: 'guest-A',
@@ -64,6 +69,53 @@ test('Okänd kontodatastatus nekas', () => {
       accountHasData: undefined
     }).allowed,
     false
+  );
+});
+
+test('Säker gästimport godkänns', () => {
+  assert.deepEqual(
+    getGuestImportCompletion({
+      importVerified: true,
+      guestBackupPreserved: true,
+      accountOwnershipVerified: true
+    }),
+    {
+      allowed: true,
+      reason: null
+    }
+  );
+});
+
+test('Gästbackup måste bevaras', () => {
+  assert.equal(
+    getGuestImportCompletion({
+      importVerified: true,
+      guestBackupPreserved: false,
+      accountOwnershipVerified: true
+    }).reason,
+    'GUEST_BACKUP_NOT_PRESERVED'
+  );
+});
+
+test('Kontoägarskap måste verifieras', () => {
+  assert.equal(
+    getGuestImportCompletion({
+      importVerified: true,
+      guestBackupPreserved: true,
+      accountOwnershipVerified: false
+    }).reason,
+    'ACCOUNT_OWNERSHIP_NOT_VERIFIED'
+  );
+});
+
+test('Importen måste verifieras', () => {
+  assert.equal(
+    getGuestImportCompletion({
+      importVerified: false,
+      guestBackupPreserved: true,
+      accountOwnershipVerified: true
+    }).reason,
+    'IMPORT_NOT_VERIFIED'
   );
 });
 
