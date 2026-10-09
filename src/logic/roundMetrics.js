@@ -29,7 +29,7 @@ export function metrics(round){
   const threePutts = eligible.filter(x=>x.putts>=3).length;
 
   const birdies =
-    eligible.filter(x=>x.score<x.par).length;
+    eligible.filter(x=>x.score===x.par-1).length;
 
   const pars =
     eligible.filter(x=>x.score===x.par).length;
@@ -69,7 +69,10 @@ export function metrics(round){
 }
 
 export function historyMetrics(rounds=[]){
-  const valid = rounds.filter(r=>r?.metrics?.n);
+  
+  const valid = rounds.filter(
+    r => r?.metrics?.n && r?.eligibility?.progression !== false
+  );
 
   const sum = k =>
     valid.reduce(
@@ -92,12 +95,36 @@ export function historyMetrics(rounds=[]){
     valid.length
       ? +(sum('score')/valid.length).toFixed(1)
       : null;
+  const complete9 = valid.filter(
+    r => r.metrics.n === 9 && Number(r.roundType) === 9
+  );
+
+  const complete18 = valid.filter(
+    r => r.metrics.n === 18 && Number(r.roundType) === 18
+  );
+
+  const averageScore = list =>
+    list.length
+      ? +(list.reduce(
+          (total, r) => total + r.metrics.score, 0
+        ) / list.length).toFixed(1)
+      : null;
+
+  const bestScore = list =>
+    list.length
+      ? Math.min(...list.map(r => r.metrics.score))
+      : null;
+
 
   return {
     rounds:valid.length,
     holes,
 
-    scoreAvg,
+    scoreAvg, 
+    scoreAvg9: averageScore(complete9),
+    scoreAvg18: averageScore(complete18),
+    bestScore9: bestScore(complete9),
+    bestScore18: bestScore(complete18),
 
     bestScore:valid.length
       ? Math.min(...valid.map(r=>r.metrics.score))
