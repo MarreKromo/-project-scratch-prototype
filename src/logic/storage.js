@@ -116,8 +116,8 @@ stored = localStorage.getItem(
 };
 
 export const save = (state, userId = null) => {
-  localStorage.setItem(
-    K,
+  localStorage.setItem(    
+    userId ? getAccountStorageKey(userId) : K,
     JSON.stringify({
       ...state,
       schemaVersion: 1
