@@ -84,10 +84,12 @@ export const load = () => {
   try {
     const parsed = JSON.parse(stored);
 
+    
     if (
       !parsed ||
       typeof parsed !== 'object' ||
-      Array.isArray(parsed)
+      Array.isArray(parsed) ||
+      ('rounds' in parsed && !Array.isArray(parsed.rounds))
     ) {
       throw new Error('Invalid stored state');
     }
