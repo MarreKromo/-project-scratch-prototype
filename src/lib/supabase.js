@@ -139,3 +139,32 @@ export async function getMyRounds() {
   return { data, error };
 }
 
+export async function saveMyRound(round) {
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser();
+
+  if (authError) {
+    return { data: null, error: authError };
+  }
+
+  if (!authData.user) {
+    return {
+      data: null,
+      error: new Error('Ingen användare är inloggad.')
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('rounds')
+    .insert({
+      user_id: authData.user.id,
+      course_name: round.courseName ?? null,
+      played_at: round.playedAt ?? null,
+      round_data: round
+    })
+    .select('id, user_id, course_name, played_at')
+    .single();
+
+  return { data, error };
+}
+
