@@ -474,6 +474,23 @@ useEffect(()=>{
     return;
   }
 
+try {
+  const { error } = await saveMyRound(saved);
+
+  if (error) {
+    console.error('CLOUD_ROUND_SAVE_FAILED', error);
+    alert(
+      'Rundan sparades lokalt, men inte i molnet. ' +
+      'Försök inte spara samma runda igen.'
+    );
+  }
+} catch (error) {
+  console.error('CLOUD_ROUND_SAVE_FAILED', error);
+  alert(
+    'Rundan sparades lokalt, men molnlagringen misslyckades.'
+  );
+}
+
 setSelectedRound(saved);
 setRound(makeRound(course,holeCount));
 setRoundActive(false);
