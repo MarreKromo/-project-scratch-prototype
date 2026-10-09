@@ -451,7 +451,7 @@ const removeClub = clubId => {
       )]
     : []
 );
-
+const roundSyncRunning = useRef(false);
 const retryPendingRounds = async () => {
   for (const id of pendingRoundSync) {
     const savedRound = rounds.find(r => r.id === id);
