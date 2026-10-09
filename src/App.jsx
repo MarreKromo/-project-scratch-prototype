@@ -434,7 +434,8 @@ const removeClub = clubId => {
   coach:stored.coach,
   sync:stored.sync
 
-    });
+    
+    }, userId);
     setStorageError(false);
   } catch (error) {
     console.error('STORAGE_WRITE_FAILED', error);
