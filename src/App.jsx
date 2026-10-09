@@ -603,12 +603,20 @@ useEffect(()=>{
           : null,
         rounds,
         coach: stored.coach,
-        sync: stored.sync
+        sync: {
+  ...stored.sync,
+  pendingRoundIds: [
+    ...new Set([...pendingRoundSync, saved.id])
+  ]
+}
       },
       saved
     );
 
     setRounds(next);
+    setPendingRoundSync(current => [
+  ...new Set([...current, saved.id])
+   ]);
     setStorageError(false);
 
   } catch (error) {
