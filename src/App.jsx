@@ -422,6 +422,9 @@ const removeClub = clubId => {
  const [roundActive,setRoundActive]=useState(Boolean(stored.activeRound));  
  const [roundDraft,setRoundDraft]=useState(stored.activeRound?.meta||null);
  const [storageError, setStorageError] = useState(false);
+ const [pendingRoundSync, setPendingRoundSync] = useState(
+    () => stored.sync?.pendingRoundIds || []
+  );
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
  const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]); 
  useEffect(()=>{
@@ -437,16 +440,19 @@ const removeClub = clubId => {
   activeRound:roundActive ? {meta:roundDraft,holes:round} : null,
   rounds,
   coach:stored.coach,
-  sync:stored.sync
-
-    
+  
+  sync: {
+    ...stored.sync,
+    pendingRoundIds: pendingRoundSync
+  }
+   
     }, userId);
     setStorageError(false);
   } catch (error) {
     console.error('STORAGE_WRITE_FAILED', error);
     setStorageError(true);
   }
-},[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft]);
+},[onboarding,journey,profile,equipment,training,courses,round,rounds,roundActive,roundDraft,pendingRoundSync]);
  
 useEffect(() => {
   if (storageError) {
