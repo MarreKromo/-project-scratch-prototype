@@ -6,7 +6,7 @@ import {coach as buildCoach} from './logic/coachEngine.js';
 import { persistCompletedRound } from './logic/roundSave.js';
 import {load,save,normalize,updateHandicap,createId,createClub,updateClub,retireClub,replaceClub,createTrainingActivity,updateTrainingActivity,voidTrainingActivity} from './logic/storage.js';
 import BottomNav from './components/BottomNav.jsx'; import HeroCard from './components/HeroCard.jsx'; import {Page,Eyebrow,Card,Primary,Secondary,TextButton,Choice,Label,Stat,Notice,Stepper} from './components/UI.jsx';
-import { supabase, signOut, getMyProfile, testProfileIsolation, getMyRounds, saveMyRound, testSupabaseConnection } from './lib/supabase.js';
+import { supabase, signOut, getMyProfile, testProfileIsolation, getMyRounds, saveMyRound, getMyCourses, saveMyCourse, testSupabaseConnection } from './lib/supabase.js';
 import AuthScreen from './components/AuthScreen.jsx';
 const tees=['Fairway','Left','Right','Long','Short','Penalty'],show=(v,s='')=>v==null?'—':`${String(v).replace('.',',')}${s}`;
 const getRoundPlayingMinutes=round=>{
