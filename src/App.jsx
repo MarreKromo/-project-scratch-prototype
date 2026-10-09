@@ -1146,6 +1146,23 @@ useEffect(() => {
   }}
 >
   Testa min profil
+  </button>
+
+<button
+  type="button"
+  onClick={async () => {
+    try {
+      const result = await testProfileIsolation();
+      alert(
+        (result.success ? 'TEST OK: ' : 'TEST FEL: ') +
+        result.message
+      );
+    } catch (error) {
+      alert('TEST FEL: ' + error.message);
+    }
+  }}
+>
+  Testa profilsäkerhet
 </button>
 
     <AppContent stored={startup.stored} />
