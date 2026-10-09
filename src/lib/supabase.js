@@ -1,9 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
-
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 export const supabase = createClient(
   supabaseUrl,
   supabaseAnonKey
@@ -11,10 +9,9 @@ export const supabase = createClient(
 
 export async function testSupabaseConnection() {
   try {
-    const { error } = await supabase
-      .from('profiles')
-      .select('id')
-      .limit(1);
+    
+const { error } = await supabase.auth.getSession();
+
 
     if (error) {
       return {
