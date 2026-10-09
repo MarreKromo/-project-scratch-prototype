@@ -88,4 +88,35 @@ export const getSignOutPrivacyDecision = ({
   };
 };
 
+export const getAccountSwitchCompletion = ({
+  previousDataHidden,
+  nextAccountVerified,
+  unsyncedDataProtected
+} = {}) => {
+  if (unsyncedDataProtected !== true) {
+    return {
+      allowed: false,
+      reason: 'UNSYNCED_DATA_NOT_PROTECTED'
+    };
+  }
+
+  if (previousDataHidden !== true) {
+    return {
+      allowed: false,
+      reason: 'PREVIOUS_DATA_STILL_VISIBLE'
+    };
+  }
+
+  if (nextAccountVerified !== true) {
+    return {
+      allowed: false,
+      reason: 'NEXT_ACCOUNT_NOT_VERIFIED'
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: null
+  };
+};
 
