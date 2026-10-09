@@ -12,3 +12,17 @@ export const hasLocalGuestData = state => {
       state.activeRound !== undefined
   );
 };
+
+export const getAccountTransition = state => {
+  if (hasLocalGuestData(state)) {
+    return {
+      allowed: false,
+      reason: 'GUEST_DATA_REQUIRES_DECISION'
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: null
+  };
+};
