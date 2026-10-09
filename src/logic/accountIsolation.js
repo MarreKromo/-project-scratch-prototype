@@ -18,3 +18,41 @@ export const canAccessAccountData = (
 
   return sessionAccountId === dataOwnerAccountId;
 };
+
+export const getAccountSwitchDecision = (
+  currentAccountId,
+  nextAccountId
+) => {
+  if (
+    typeof currentAccountId !== 'string' ||
+    currentAccountId.trim() === ''
+  ) {
+    return {
+      allowed: false,
+      reason: 'CURRENT_ACCOUNT_UNKNOWN'
+    };
+  }
+
+  if (
+    typeof nextAccountId !== 'string' ||
+    nextAccountId.trim() === ''
+  ) {
+    return {
+      allowed: false,
+      reason: 'NEXT_ACCOUNT_UNKNOWN'
+    };
+  }
+
+  if (currentAccountId === nextAccountId) {
+    return {
+      allowed: true,
+      requiresDataIsolation: false
+    };
+  }
+
+  return {
+    allowed: false,
+    reason: 'ACCOUNT_DATA_ISOLATION_REQUIRED'
+  };
+};
+
