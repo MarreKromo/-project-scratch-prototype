@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   hasLocalGuestData,
-  getAccountTransition
+  getAccountTransition,
+  getGuestDataDecision
 } from './accountFlows.js';
+
 
 test('Tom gästprofil saknar golfdata', () => {
   const state = {
@@ -114,5 +116,47 @@ test('Coachhistorik skyddas', () => {
   };
 
   assert.equal(hasLocalGuestData(state), true);
+});
+
+test('Gästdata kräver ett aktivt val', () => {
+  const state = {
+    identity: { type: 'guest' },
+    rounds: [{ id: 'round-1' }]
+  };
+
+  assert.deepEqual(getGuestDataDecision(state), {
+    action: 'WAIT_FOR_USER',
+    requiresConfirmation: true
+  });
+});
+
+test('Gästdata kan behållas separat', () => {
+  const state = {
+    identity: { type: 'guest' },
+    rounds: [{ id: 'round-1' }]
+  };
+
+  assert.deepEqual(
+    getGuestDataDecision(state, 'KEEP_SEPARATE'),
+    {
+      action: 'PRESERVE_GUEST_DATA',
+      requiresConfirmation: false
+    }
+  );
+});
+
+test('Import kräver ytterligare bekräftelse', () => {
+  const state = {
+    identity: { type: 'guest' },
+    rounds: [{ id: 'round-1' }]
+  };
+
+  assert.deepEqual(
+    getGuestDataDecision(state, 'REQUEST_IMPORT'),
+    {
+      action: 'PREPARE_IMPORT',
+      requiresConfirmation: true
+    }
+  );
 });
 
