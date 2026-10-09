@@ -234,6 +234,47 @@ Project Scratch for Supabase integration.
 - Verify authenticated access is revoked after deletion.
 - Handle partial deletion and export failures.
 
+## Security test plan
+
+### Test identities
+- User A: authenticated account with private records.
+- User B: separate authenticated account.
+- Guest: local-only identity without account access.
+- Anonymous: unauthenticated database request.
+
+### RLS test matrix
+- User A can read, create and edit own records.
+- User A cannot read User B's records.
+- User A cannot modify or delete User B's records.
+- User A cannot create records owned by User B.
+- User A cannot change record ownership.
+- Anonymous requests cannot access private records.
+- Apply these tests to every private table.
+
+### Guest migration tests
+- Guest import requires explicit confirmation.
+- Existing account records are preserved.
+- Repeated imports do not create duplicates.
+- Interrupted imports can safely resume.
+- Guest backups survive failed imports.
+- Imported records have verified account ownership.
+
+### Export and deletion tests
+- Exports include only the authenticated user's data.
+- Exports preserve dates and record relationships.
+- Deletion requires authentication and confirmation.
+- Account deletion removes or anonymizes applicable data.
+- Deleted accounts cannot access private records.
+- Failed operations never report false success.
+
+### Test execution
+- AF-06A.3 defines the required test cases.
+- AF-06A.4 implements database and integration tests.
+- Run tests using separate authenticated identities.
+- Verify RLS directly against Supabase.
+- Record failures and fixes before production release.
+- Do not claim security compliance from unit tests alone.
+
 ## Acceptance criteria
 - Ownership rules documented for every table.
 - RLS policies designed and reviewed.
