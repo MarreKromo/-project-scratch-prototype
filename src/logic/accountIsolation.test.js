@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
 import {
   canAccessAccountData,
-  getAccountSwitchDecision
+  getAccountSwitchDecision,
+  getSignOutPrivacyDecision
 } from './accountIsolation.js';
 
 test('Rätt konto får åtkomst', () => {
