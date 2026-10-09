@@ -51,6 +51,46 @@ Project Scratch for Supabase integration.
 - Users can export and request deletion of their data.
 - Unsynced guest data must not be silently deleted.
 
+## Data ownership rules
+
+### Identity
+- Supabase Auth user ID is the canonical account identity.
+- Profiles.id must match the authenticated user's ID.
+- Rounds.user_id references Profiles.id.
+- Training sessions.user_id references Profiles.id.
+- Golf DNA.user_id references Profiles.id.
+- Client-supplied owner IDs must never grant access.
+
+### Private data access
+- SELECT: Only the authenticated owner.
+- INSERT: Only when the owner ID matches auth.uid().
+- UPDATE: Only the owner; ownership cannot be transferred.
+- DELETE: Only the owner, subject to deletion safeguards.
+- Unauthenticated users have no access to account data.
+
+### Profiles
+- Each account has at most one profile.
+- Users may access and edit only their own profile.
+- Public profile visibility requires a separate future design.
+
+### Rounds and training
+- Every record must belong to exactly one account.
+- Records must not be reassigned between accounts.
+- Guest records remain separate until verified import.
+
+### Golf DNA
+- Golf DNA is private by default.
+- Each account has at most one Golf DNA profile.
+- Badges and rewards must not expose private statistics.
+- Friend visibility and leaderboards require separate
+  consent and access rules before implementation.
+
+### Database enforcement
+- Enable RLS on every private table.
+- Apply ownership checks to all database operations.
+- Use database constraints to protect ownership.
+- Test cross-account access denial before release.
+
 ## Acceptance criteria
 - Ownership rules documented for every table.
 - RLS policies designed and reviewed.
