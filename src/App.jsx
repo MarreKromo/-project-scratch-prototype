@@ -1091,6 +1091,8 @@ goto('saved');
 export default function App() {
   const [startup] = useState(readStartupData);
 
+const [session, setSession] = useState(null);
+
   if (startup.storageError) {
     return <StorageErrorScreen />;
   }
