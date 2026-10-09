@@ -1335,8 +1335,9 @@ useEffect(() => {
     <button
       type="button"
       onClick={async () => {
-        const { error } = await signOut();
-        if (error) alert(error.message);
+        const { error } = await signOut();    
+        if (startup.storageError || accountStartup?.storageError) {
+
       }}
     >
       Logga ut
