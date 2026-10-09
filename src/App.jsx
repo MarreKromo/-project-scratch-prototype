@@ -1419,7 +1419,7 @@ useEffect(() => {
     
 <AppContent
   key={session.user.id}
-  stored={startup.stored}
+  stored={readStartupData(session.user.id).stored}
   userId={session.user.id}
 />
 
