@@ -154,6 +154,28 @@ export async function saveMyRound(round) {
     };
   }
 
+  if (!round?.id || typeof round.id !== 'string') {
+    return {
+      data: null,
+      error: new Error('Rundan saknar giltigt ID.')
+    };
+  }
+
+  const { data: existing, error: lookupError } = await supabase
+    .from('rounds')
+    .select('id, user_id, course_name, played_at')
+    .eq('user_id', authData.user.id)
+    .eq('round_data->>id', round.id)
+    .maybeSingle();
+
+  if (lookupError) {
+    return { data: null, error: lookupError };
+  }
+
+  if (existing) {
+    return { data: existing, error: null };
+  }
+ 
   const { data, error } = await supabase
     .from('rounds')
     
@@ -166,6 +188,24 @@ export async function saveMyRound(round) {
 
     .select('id, user_id, course_name, played_at')
     .single();
+
+  
+  if (error?.code === '23505') {
+    const { data: savedRound, error: retryError } = await supabase
+      .from('rounds')
+      .select('id, user_id, course_name, played_at')
+      .eq('user_id', authData.user.id)
+      .eq('round_data->>id', round.id)
+      .maybeSingle();
+
+    if (retryError) {
+      return { data: null, error: retryError };
+    }
+
+    if (savedRound) {
+      return { data: savedRound, error: null };
+    }
+  }
 
   return { data, error };
 }
