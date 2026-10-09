@@ -438,9 +438,10 @@ useEffect(()=>{
     metrics:mm,
     analysis:mode==='Standard'?buildCoach(mm):null
   };
+  
+  const next = [...rounds, saved];
 
-  setRounds(prev=>{
-    const next=[...prev,saved];
+  try {
 
    save({
      identity:stored.identity,
@@ -457,8 +458,14 @@ useEffect(()=>{
      sync:stored.sync
    });
 
-    return next;
-  });
+    setRounds(next);
+    setStorageError(false);
+  } catch (error) {
+    console.error('ROUND_SAVE_FAILED', error);
+    setStorageError(true);
+    alert('Rundan kunde inte sparas. Försök igen. Lämna inte sidan.');
+    return;
+  }
 
 setSelectedRound(saved);
 setRound(makeRound(course,holeCount));
