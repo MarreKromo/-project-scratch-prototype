@@ -1301,7 +1301,10 @@ const completeOnboarding = async (handicap = null) => {
 }
 
 export default function App() {
-  const [startup] = useState(readStartupData);
+const [startup] = useState(readStartupData);
+const accountStartup = session
+  ? readStartupData(session.user.id)
+  : null;
 
 const [session, setSession] = useState(null);
 
