@@ -76,3 +76,50 @@ test('Okänt nästa konto nekas', () => {
   );
 });
 
+test('Säker utloggning godkänns', () => {
+  assert.deepEqual(
+    getSignOutPrivacyDecision({
+      sessionEnded: true,
+      privateDataHidden: true,
+      unsyncedDataProtected: true
+    }),
+    {
+      allowed: true,
+      reason: null
+    }
+  );
+});
+
+test('Privat data får inte vara synlig', () => {
+  assert.equal(
+    getSignOutPrivacyDecision({
+      sessionEnded: true,
+      privateDataHidden: false,
+      unsyncedDataProtected: true
+    }).reason,
+    'PRIVATE_DATA_STILL_VISIBLE'
+  );
+});
+
+test('Osynkroniserad data måste skyddas', () => {
+  assert.equal(
+    getSignOutPrivacyDecision({
+      sessionEnded: true,
+      privateDataHidden: true,
+      unsyncedDataProtected: false
+    }).reason,
+    'UNSYNCED_DATA_NOT_PROTECTED'
+  );
+});
+
+test('Sessionen måste vara avslutad', () => {
+  assert.equal(
+    getSignOutPrivacyDecision({
+      sessionEnded: false,
+      privateDataHidden: true,
+      unsyncedDataProtected: true
+    }).reason,
+    'SESSION_STILL_ACTIVE'
+  );
+});
+
