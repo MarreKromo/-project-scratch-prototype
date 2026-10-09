@@ -115,8 +115,7 @@ stored = localStorage.getItem(
   }
 };
 
-
-export const save = state => {
+export const save = (state, userId = null) => {
   localStorage.setItem(
     K,
     JSON.stringify({
