@@ -73,8 +73,8 @@ export async function getMyProfile() {
   }
 
   const { data, error } = await supabase
-    .from('profiles')
-    .select('id, display_name, created_at')
+    .from('profiles')    
+    .select('id, display_name, created_at, onboarding_data')
     .eq('id', authData.user.id)
     .single();
 
