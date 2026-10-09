@@ -1535,6 +1535,7 @@ useEffect(() => {
 
       const { data: saved, error: saveError } =
         await saveMyRound({
+          id: crypto.randomUUID(),
           courseName: 'Supabase Testbana',
           playedAt: new Date().toISOString(),
           testMarker: marker
