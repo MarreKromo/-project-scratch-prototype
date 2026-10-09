@@ -101,3 +101,22 @@ test('tom runda ger ingen statistik', () => {
   assert.equal(result.teeN, 0);
 });
 
+test('9 och 18 hål ska ha separata snitt', () => {
+  const rounds = [
+    {
+      roundType: 9,
+      metrics: { n: 9, score: 39 }
+    },
+    {
+      roundType: 18,
+      metrics: { n: 18, score: 78 }
+    }
+  ];
+
+  const result = historyMetrics(rounds);
+
+  assert.equal(result.scoreAvg9, 39);
+  assert.equal(result.scoreAvg18, 78);
+  assert.equal(result.bestScore9, 39);
+  assert.equal(result.bestScore18, 78);
+});
