@@ -467,6 +467,12 @@ useEffect(()=>{
   }:d);
 },[hole,round,roundActive]);
  const startRound=()=>{
+  if (!courses.some(c => c.id === course?.id)) {
+    alert('Välj eller skapa en golfbana innan du startar rundan.');
+    goto('course');
+    return;
+  }
+
   setRound(makeRound(course,holeCount));
   setRoundDraft({id:createId('round'),
     ownerId:stored.identity.id,
