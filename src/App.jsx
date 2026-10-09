@@ -1113,5 +1113,9 @@ useEffect(() => {
     return <StorageErrorScreen />;
   }
 
-  return <AppContent stored={startup.stored} />;
+  
+return session
+  ? <AppContent stored={startup.stored} />
+  : <AuthScreen onAuthenticated={setSession} />;
+
 }
