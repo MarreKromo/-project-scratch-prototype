@@ -5,7 +5,7 @@ on:
   push:
     branches:      
       - main
-
+      - af-06a1-storage-safety
   workflow_dispatch:
  
   pull_request:
