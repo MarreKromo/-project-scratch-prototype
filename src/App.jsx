@@ -80,7 +80,8 @@ const StorageErrorScreen = () => (
   </main>
 );
 
-function AppContent({ stored }) {
+
+  function AppContent({ stored, userId }) {
   const [profile,setProfile]=useState(stored.profile);const [onboarding,setOnboarding]=useState(stored.onboarding); const [handicapInput,setHandicapInput]=useState(''); const [screen,setScreen]=useState(
 
   stored.activeRound?.meta?.status==='in_progress'
