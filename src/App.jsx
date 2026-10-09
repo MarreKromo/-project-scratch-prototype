@@ -608,7 +608,34 @@ const addCourse = async () => {
   const result = await testSupabaseConnection();
   alert(result.message);
 };
- return <div className="shell"><header><button className="brand" onClick={()=>goto('home')}>PROJECT SCRATCH</button><span className="status">{offline?<><WifiOff size={13}/> OFFLINE</>:'PROTOTYPE v0.3.1'}</span></header><main> 
+
+const completeOnboarding = async (handicap = null) => {
+  const completed = {
+    status: 'complete',
+    completedAt: new Date().toISOString()
+  };
+
+  const nextProfile = handicap === null
+    ? profile
+    : updateHandicap(profile, handicap);
+
+  const { error } = await saveMyOnboarding({
+    onboarding: completed,
+    journey,
+    handicap: nextProfile?.selfReportedHandicap ?? null
+  });
+
+  if (error) {
+    alert('Kunde inte spara din profil: ' + error.message);
+    return;
+  }
+
+  setProfile(nextProfile);
+  setOnboarding(completed);
+  goto('home');
+};
+
+  return <div className="shell"><header><button className="brand" onClick={()=>goto('home')}>PROJECT SCRATCH</button><span className="status">{offline?<><WifiOff size={13}/> OFFLINE</>:'PROTOTYPE v0.3.1'}</span></header><main> 
 <button onClick={runConnectionTest}>
   Testa Supabase
 </button>
