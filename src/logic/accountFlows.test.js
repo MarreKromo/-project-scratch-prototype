@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
 import {
   hasLocalGuestData,
   getAccountTransition,
-  getGuestDataDecision
+  getGuestDataDecision,
+  getSignOutDecision
 } from './accountFlows.js';
-
 
 test('Tom gästprofil saknar golfdata', () => {
   const state = {
@@ -158,5 +159,51 @@ test('Import kräver ytterligare bekräftelse', () => {
       requiresConfirmation: true
     }
   );
+});
+
+test('Gäst kan inte loggas ut', () => {
+  const state = {
+    identity: { type: 'guest' }
+  };
+
+  assert.deepEqual(getSignOutDecision(state), {
+    allowed: false,
+    reason: 'NOT_SIGNED_IN'
+  });
+});
+
+test('Okänd synkstatus stoppar utloggning', () => {
+  const state = {
+    identity: { type: 'account' }
+  };
+
+  assert.deepEqual(getSignOutDecision(state), {
+    allowed: false,
+    reason: 'SYNC_STATUS_UNKNOWN'
+  });
+});
+
+test('Osynkroniserad data stoppar utloggning', () => {
+  const state = {
+    identity: { type: 'account' },
+    sync: { pending: [{ id: 'round-1' }] }
+  };
+
+  assert.deepEqual(getSignOutDecision(state), {
+    allowed: false,
+    reason: 'UNSYNCED_DATA_REQUIRES_DECISION'
+  });
+});
+
+test('Utloggningsflöde kan fortsätta utan väntande synk', () => {
+  const state = {
+    identity: { type: 'account' },
+    sync: { pending: [] }
+  };
+
+  assert.deepEqual(getSignOutDecision(state), {
+    allowed: true,
+    reason: null
+  });
 });
 
