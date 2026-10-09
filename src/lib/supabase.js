@@ -197,3 +197,27 @@ export async function saveMyCourse(course) {
   return { data, error };
 }
 
+export async function getMyCourses() {
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser();
+
+  if (authError) {
+    return { data: null, error: authError };
+  }
+
+  if (!authData.user) {
+    return {
+      data: null,
+      error: new Error('Ingen användare är inloggad.')
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('courses')
+    .select('id, course_data')
+    .eq('user_id', authData.user.id)
+    .order('created_at', { ascending: true });
+
+  return { data, error };
+}
+
