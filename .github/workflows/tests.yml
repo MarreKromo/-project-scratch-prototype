@@ -6,6 +6,7 @@ on:
     branches:      
       - main
       - af-06a1-storage-safety
+      - af-06a2-account-flows
   workflow_dispatch:
  
   pull_request:
