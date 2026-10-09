@@ -127,6 +127,38 @@ useEffect(() => {
   };
 }, []);
 
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadCloudCourses() {
+    const { data, error } = await getMyCourses();
+
+    if (cancelled) return;
+
+    if (error) {
+      console.error('CLOUD_COURSES_LOAD_FAILED', error);
+      return;
+    }
+
+    const cloudCourses = (data || [])
+      .map(row => row.course_data)
+      .filter(c =>
+        c &&
+        typeof c.id === 'string' &&
+        typeof c.name === 'string' &&
+        Array.isArray(c.pars)
+      );
+
+    setCourses([defaultCourse, ...cloudCourses]);
+  }
+
+  loadCloudCourses();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
  const [equipment,setEquipment]=useState(stored.equipment); 
  const [training,setTraining]=useState(stored.training);
  
