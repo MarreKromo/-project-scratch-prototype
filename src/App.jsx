@@ -95,6 +95,38 @@ function AppContent({ stored }) {
 );
   
  const [journey,setJourney]=useState(stored.journey); const [courses,setCourses]=useState(stored.courses||[defaultCourse]); const [course,setCourse]=useState(courses.find(c=>c.id===stored.activeRound?.meta?.courseId)||courses[0]||defaultCourse); const [holeCount,setHoleCount]=useState(stored.activeRound?.meta?.roundType||18); const [mode,setMode]=useState(stored.activeRound?.meta?.mode==='practice'?'Practice':'Standard'); const [round,setRound]=useState(stored.activeRound?.holes||makeRound(course,18)); const [hole,setHole]=useState(stored.activeRound?.meta?.currentHole||1); const [rounds,setRounds]=useState([]); const [selectedRound,setSelectedRound]=useState(null); const [offline,setOffline]=useState(false); const [newCourse,setNewCourse]=useState({name:'',tee:'Yellow',holes:18,pars:'4,4,3,5,4,4,3,5,4,4,4,3,5,4,4,3,5,4'});
+ 
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadCloudRounds() {
+    const { data, error } = await getMyRounds();
+
+    if (cancelled) return;
+
+    if (error) {
+      console.error('CLOUD_ROUNDS_LOAD_FAILED', error);
+      return;
+    }
+
+    const validRounds = (data || [])
+      .map(row => row.round_data)
+      .filter(round =>
+        round &&
+        Array.isArray(round.round) &&
+        round.metrics
+      );
+
+    setRounds(validRounds);
+  }
+
+  loadCloudRounds();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
  const [equipment,setEquipment]=useState(stored.equipment); 
  const [training,setTraining]=useState(stored.training);
  
