@@ -1,7 +1,26 @@
 # AF-06A.2 – Account Flows
 
-Status: Specification
-Implementation: Not started
+
+Status: Decision logic implemented and tested
+Implementation: Pure logic only; not connected to app authentication or storage
+
+## Verified progress
+- Guest and account transition decisions defined.
+- Registration, sign-in and recovery decisions defined.
+- Guest data transfer requires explicit confirmation.
+- Guest import completion requires verified import, backup and ownership.
+- Sign-out completion requires private data isolation and unsynced data protection.
+- Account switching requires verified isolation.
+- Account-specific and guest-specific storage key helpers defined.
+- Automated test suite: 74 passing tests.
+- GitHub Actions tests and build passed.
+
+## Deferred implementation
+- Real authentication and account recovery via Supabase.
+- Actual per-user data isolation and database policies.
+- Real guest data migration, backup and recovery.
+- Connecting account flows to the app interface.
+- End-to-end security and account transition tests.
 
 ## Goal
 Allow golfers to use guest mode, register, sign in,
