@@ -443,8 +443,15 @@ const removeClub = clubId => {
  const [roundDraft,setRoundDraft]=useState(stored.activeRound?.meta||null);
  const [storageError, setStorageError] = useState(false);
  const [pendingRoundSync, setPendingRoundSync] = useState(
-    () => stored.sync?.pendingRoundIds || []
-  );
+  () => Array.isArray(stored.sync?.pendingRoundIds)
+    ? [...new Set(
+        stored.sync.pendingRoundIds.filter(
+          id => typeof id === 'string' && id.length > 0
+        )
+      )]
+    : []
+);
+
  const eligibleRounds=rounds.filter(r=>r?.eligibility?.progression!==false);
  const lastRound=eligibleRounds.at(-1)||null,goto=s=>{setScreen(s);window.scrollTo(0,0)},m=useMemo(()=>metrics(round),[round]),analysis=useMemo(()=>buildCoach(lastRound?.metrics||m),[lastRound,m]),history=useMemo(()=>historyMetrics(eligibleRounds),[eligibleRounds]); 
  useEffect(()=>{
