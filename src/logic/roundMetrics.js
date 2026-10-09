@@ -69,7 +69,10 @@ export function metrics(round){
 }
 
 export function historyMetrics(rounds=[]){
-  const valid = rounds.filter(r=>r?.metrics?.n);
+  
+  const valid = rounds.filter(
+    r => r?.metrics?.n && r?.eligibility?.progression !== false
+  );
 
   const sum = k =>
     valid.reduce(
